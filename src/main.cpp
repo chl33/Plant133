@@ -8,6 +8,8 @@
 #include <og3/units.h>
 #include <og3/variable.h>
 
+#include <array>
+
 #include "watering.h"
 
 #define SW_VERSION "0.7.0"
@@ -53,25 +55,14 @@ og3::OledDisplayRing s_oled(&s_app.module_system(), kModel, kOledSwitchMsec);
 
 // Add the plant-watering system.
 // This is defined in the app's lib/ subdirectory.
-og3::Watering plants[4]
-    {
-        {"plant1", kMoistureAnalogPin[0], kModeLED, kPumpCtlPin[0], &s_app},
-        {"plant2", kMoistureAnalogPin[1], kModeLED, kPumpCtlPin[1], &s_app},
-        {"plant3", kMoistureAnalogPin[2], kModeLED, kPumpCtlPin[2], &s_app},
-        {"plant4", kMoistureAnalogPin[3], kModeLED, kPumpCtlPin[3], &s_app},
-    };
-
-// Web callback for testing the pump.
-void handleTestPump(AsyncWebServerRequest* request) {
-  // Run the pump test.
-  // plants[0].testPump();
-  // Redirect the web client back to the main web page.
-  request->redirect("/");
-}
+std::array<og3::Watering, 4> plants{{
+    {"plant1", kMoistureAnalogPin[0], kModeLED, kPumpCtlPin[0], &s_app},
+    {"plant2", kMoistureAnalogPin[1], kModeLED, kPumpCtlPin[1], &s_app},
+    {"plant3", kMoistureAnalogPin[2], kModeLED, kPumpCtlPin[2], &s_app},
+    {"plant4", kMoistureAnalogPin[3], kModeLED, kPumpCtlPin[3], &s_app},
+}};
 
 // Web interface buttons.
-og3::WebButton s_button_test_pump(&s_app.web_server(), "Test pump", "/test_pump", handleTestPump);
-
 og3::WebButton s_button_wifi_config = s_app.createWifiConfigButton();
 og3::WebButton s_button_mqtt_config = s_app.createMqttConfigButton();
 og3::WebButton s_button_app_status = s_app.createAppStatusButton();
@@ -88,26 +79,20 @@ void handleWebRoot(AsyncWebServerRequest* request) {
   og3::html::writeTableInto(&s_body, s_climate_vg);
   // Write a table of watering state variables.
   og3::html::writeTableInto(&s_body, s_reservoir.variables());
-  og3::html::writeTableInto(&s_body, plants[0].variables());
-#if 0
-  og3::html::writeTableInto(&s_body, plants[1].variables());
-  og3::html::writeTableInto(&s_body, plants[2].variables());
-  og3::html::writeTableInto(&s_body, plants[3].variables());
-#endif
   // Write state of Wifi
   og3::html::writeTableInto(&s_body, s_app.wifi_manager().variables());
   // Write state of MQTT
   og3::html::writeTableInto(&s_body, s_app.mqtt_manager().variables());
-  // Add a button for configuring wattering.
-  plants[0].add_html_config_button(&s_body);
+  // Add a button for watering status for each system
+  for (const auto& plant : plants) {
+    plant.add_html_status_button(&s_body);
+  }
   // Add a button for configuring Wifi.
   s_button_wifi_config.add_button(&s_body);
   // Add a button for configuring MQTT.
   s_button_mqtt_config.add_button(&s_body);
   // Add a button for looking at app state.
   s_button_app_status.add_button(&s_body);
-  // Add a button for testing the pump.
-  s_button_test_pump.add_button(&s_body);
   // Add a button for rebooting the device.
   s_button_restart.add_button(&s_body);
   // Send the page back to the web client.

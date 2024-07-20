@@ -13,8 +13,6 @@ namespace og3 {
 // Watering manages the state machine for watering a plant.
 class Watering : public Module {
  public:
-  static const char kConfigUrl[];
-
   // The set of possible states in the state machine.
   enum State {
     // Check moisture level, reservior level during watering cycle.
@@ -70,8 +68,7 @@ class Watering : public Module {
   void testPump() { setState(kStatePumpTest, 100, "test pump"); }
   void test() { setState(kStateTest, 100, "full test"); }
   State state() const { return static_cast<State>(m_state.value()); }
-  void handleRequest(AsyncWebServerRequest* request, const char* title, const char* footer);
-  void add_html_config_button(String* body) { add_html_button(body, "Watering", kConfigUrl); }
+  void add_html_status_button(String* body) const { add_html_button(body, name(), statusUrl()); }
   bool isReservoirEmpty() const {
     return !m_reservoir_check->haveWater();
   }
@@ -89,12 +86,20 @@ class Watering : public Module {
 
  private:
   void _fullTest();
+  const char* statusUrl() const { return m_status_url.c_str(); }
+  const char* configUrl() const { return m_config_url.c_str(); }
+  const char* pumpTestUrl() const { return m_pump_test_url.c_str(); }
+  void handleStatusRequest(AsyncWebServerRequest* request);
+  void handleConfigRequest(AsyncWebServerRequest* request);
 
   HAApp* const m_app;
   HADependenciesArray<3> m_dependencies;
   VariableGroup m_cfg_vg;
   VariableGroup m_vg;
-  unsigned m_index;
+  const String m_status_url;
+  const String m_config_url;
+  const String m_pump_test_url;
+  String m_html;
   ReservoirCheck* m_reservoir_check = nullptr;
   OledDisplayRing* m_oled = nullptr;
   ConfigInterface* m_config = nullptr;

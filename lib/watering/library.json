@@ -12,8 +12,8 @@
 	}
     ],
     "dependencies": {
-	"chl33/og3": "0.1.1",
-	"chl33/og3x-oled": "0.1.0"
+	"og3": "0.1.5",
+	"og3x-oled": "0.1.0"
     },
     "export": {
 	"exclude": [".*", "*~", "util/"]

@@ -27,8 +27,6 @@ constexpr unsigned kCfgSet = VariableBase::Flags::kConfig | VariableBase::Flags:
 
 }  // namespace
 
-const char Watering::kConfigUrl[] = "/watering/update";
-
 const char* Watering::s_state_names[] = {
     "watering",
     "pump",
@@ -55,13 +53,16 @@ bool Watering::StateVariable::fromString(const String& value) {
   return false;
 }
 
-Watering::Watering(const char* name, uint8_t moisture_pin, uint8_t mode_led,
-                   uint8_t pump_ctl_pin, HAApp* app)
-  : Module(name, &app->module_system()),
-    m_app(app),
-    m_dependencies({ConfigInterface::kName, ReservoirCheck::kName, OledDisplayRing::kName}),
-    m_cfg_vg(name, VariableGroup::VarNameType::kWithGroup),
+Watering::Watering(const char* name, uint8_t moisture_pin, uint8_t mode_led, uint8_t pump_ctl_pin,
+                   HAApp* app)
+    : Module(name, &app->module_system()),
+      m_app(app),
+      m_dependencies({ConfigInterface::kName, ReservoirCheck::kName, OledDisplayRing::kName}),
+      m_cfg_vg(name, VariableGroup::VarNameType::kWithGroup),
       m_vg(name, VariableGroup::VarNameType::kWithGroup),
+      m_status_url(String("/") + name + "/status"),
+      m_config_url(String("/") + name + "/config"),
+      m_pump_test_url(String("/") + name + "/pump"),
       m_moisture("soil_moisture", moisture_pin, "raw moisture reading", "soil moisture %",
                  &app->module_system(), &m_cfg_vg, &m_vg),
       m_pump("pump", &app->tasks(), pump_ctl_pin, "pump state", true, &m_vg, Relay::OnLevel::kHigh),
@@ -121,9 +122,15 @@ Watering::Watering(const char* name, uint8_t moisture_pin, uint8_t mode_led,
     });
   });
   add_update_fn([this]() { loop(); });
-  String url(String(this->name()) + "/config");
-  m_app->web_server().on(url.c_str(), [this](AsyncWebServerRequest* request) {
-    this->handleRequest(request, m_app->board_cname(), this->name());
+  m_app->web_server().on(statusUrl(), [this](AsyncWebServerRequest* request) {
+    this->handleStatusRequest(request);
+  });
+  m_app->web_server().on(configUrl(), [this](AsyncWebServerRequest* request) {
+    this->handleConfigRequest(request);
+  });
+  m_app->web_server().on(pumpTestUrl(), [this](AsyncWebServerRequest* request) {
+    testPump();
+    request->redirect(statusUrl());
   });
 }
 
@@ -316,14 +323,23 @@ void Watering::_fullTest() {
   m_mode_led.off();
 }
 
-void Watering::handleRequest(AsyncWebServerRequest* request, const char* title,
-                             const char* footer) {
+void Watering::handleStatusRequest(AsyncWebServerRequest* request) {
+#ifndef NATIVE
+  m_html.clear();
+  html::writeTableInto(&m_html, variables());
+  add_html_button(&m_html, "Configure", configUrl());  
+  add_html_button(&m_html, "Test pump", pumpTestUrl());
+  m_html += F(HTML_BUTTON("/", "Back"));
+  sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
+#endif
+}
+void Watering::handleConfigRequest(AsyncWebServerRequest* request) {
 #ifndef NATIVE
   ::og3::read(*request, &m_cfg_vg);
-  String form;
-  html::writeFormTableInto(&form, m_cfg_vg);
-  form += F(HTML_BUTTON("/", "Back"));
-  sendWrappedHTML(request, title, footer, form.c_str());
+  m_html.clear();
+  html::writeFormTableInto(&m_html, m_cfg_vg);
+  m_html += F(HTML_BUTTON("/", "Back"));
+  sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
   if (m_config) {
     m_config->write_config(m_cfg_vg);
   }
