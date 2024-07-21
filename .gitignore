@@ -8,3 +8,5 @@
 secrets*.ini
 secrets*.yaml
 .dir-locals.el
+*.old
+/box/plant1337.3mf
