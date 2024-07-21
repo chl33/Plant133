@@ -1,0 +1,12 @@
+.pio/
+*~
+.vscode
+.ccls
+**/.ccls-cache
+**/data/mqtt.json
+**/data/wifi.json
+secrets*.ini
+secrets*.yaml
+.dir-locals.el
+*.old
+/box/plant1337.3mf
