@@ -2,8 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 // :GUI:
-show_vitamins = true;
+show_vitamins = false;
 // :GUI:
 show_box = true;
 // :GUI:
-top = true;
+top = false;

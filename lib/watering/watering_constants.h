@@ -12,7 +12,7 @@ constexpr float kLowWaterSecsRemaining = 10.0f;
 //  short time after the pump was run, so I introduced a minimum wait between the
 //  the the pump was run and a reading was taken.
 constexpr long kWaitBetweenPumpAndMoisureReadingMsec = kMsecInSec;
-// < 5% means the sensor is probably not in soil.  
+// < 5% means the sensor is probably not in soil.
 constexpr float kMinPlausibleMoisture = 5.0f;
 // Always wait 15 minutes between pump cycles.
 constexpr long kPumpOffMsec = 15 * kMsecInMin;

@@ -3,7 +3,9 @@
 
 #include "reservoir_check.h"
 
-#include "og3/ha_discovery.h"
+#include <og3/ha_discovery.h>
+#include <og3/html_table.h>
+
 #include "watering_constants.h"
 
 namespace og3 {
@@ -16,7 +18,7 @@ const char ReservoirCheck::kName[] = "reservoir";
 ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
     : Module(kName, &app_->module_system()),
       m_app(app_),
-      m_deps({ConfigInterface::kName, OledDisplayRing::kName}),
+      m_deps({ConfigInterface::kName}),
       m_cfg_vg(kName),
       m_vg(kName),
       m_din("reservoir", &m_app->module_system(), pin, "reservoir has water", &m_vg, true),
@@ -27,7 +29,6 @@ ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
   setDependencies(&m_deps);
   add_link_fn([this](og3::NameToModule& name_to_module) -> bool {
     m_config = ConfigInterface::get(name_to_module);
-    m_oled = OledDisplayRing::get(name_to_module);
     return true;
   });
   add_init_fn([this]() {
@@ -40,14 +41,9 @@ ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
         return had->addMeas(json, m_pump_seconds_remaining, ha::device_type::kSensor,
                             ha::device_class::sensor::kDuration);
       });
-      if (m_oled) {
-        m_oled->addDisplayFn([this]() {
-          if (!floatIsFloating()) {
-            m_oled->display("Fill reservoir.");
-          }
-        });
-      }
     }
+    m_app->web_server().on(
+        "/config", [this](AsyncWebServerRequest* request) { this->handleConfigRequest(request); });
   });
 }
 
@@ -62,6 +58,19 @@ void ReservoirCheck::pumpRanForMsec(float msecs) {
     const float remaining = m_pump_seconds_remaining.value() - 1.0e-3 * msecs;
     m_pump_seconds_remaining = remaining > 0.0f ? remaining : 0.0f;
   }
+}
+
+void ReservoirCheck::handleConfigRequest(AsyncWebServerRequest* request) {
+#ifndef NATIVE
+  ::og3::read(*request, &m_cfg_vg);
+  m_html.clear();
+  html::writeFormTableInto(&m_html, m_cfg_vg);
+  add_html_button(&m_html, "Back", "/");
+  sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
+  if (m_config) {
+    m_config->write_config(m_cfg_vg);
+  }
+#endif
 }
 
 }  // namespace og3
