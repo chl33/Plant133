@@ -78,6 +78,15 @@ module Plant1337_box(top) {
     if (top) {
       in_Plant1337_board_frame(board_height=true)
 	shtc3_window(shtc3_loc, space_above_board, wall, true, z_gap=-1);
+    } else {
+      // Screw holes to mount on reservoir lid.
+      w = 2;
+      len = 25;
+      $fn = 40;
+      translate([outer_dims[0]/2, outer_dims[1]/2, -0.1]) {
+	translate([-len/2, len/2, -1]) cylinder(2*w+2, 1.5, 1.5);
+	translate([len/2, -len/2, -1]) cylinder(2*w+2, 1.5, 1.5);
+      }
     }
   }
 }
