@@ -27,7 +27,7 @@ oled_o = [20, 0];
 oled_d = [outer_dims[0] - oled_o[0], 17, 12];
 
 // bumps is a list of [offset-xy, outer_dims]
-bumps = [[oled_o, oled_d]];
+humps = [[oled_o, oled_d]];
 
 // cutout for moisture & pump
 conns_o = [31.5, 17.1];
@@ -61,6 +61,7 @@ module Plant1337_box(top) {
 		  snaps_on_sides=true,
 		  corner_radius=corner_radius,
 		  top=top,
+		  humps=humps,
 		  top_cutouts=top_cutouts,
 		  ym_cutouts=ym_cutouts);
       if (top) {

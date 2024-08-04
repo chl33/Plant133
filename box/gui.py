@@ -129,6 +129,9 @@ class GUIWindow(Gtk.ApplicationWindow):
         self.add(vbox)
         hbox1 = Gtk.Box(spacing=6)
         vbox.pack_start(hbox1, True, True, 0)
+        openscad_button = Gtk.Button(label='openscad')
+        openscad_button.connect("clicked", self._launch_openscad)
+        hbox1.pack_start(openscad_button, True, True, 0)
         render_button = Gtk.Button(label='render')
         render_button.connect("clicked", self._render)
         hbox1.pack_start(render_button, True, True, 0)
@@ -165,6 +168,9 @@ class GUIWindow(Gtk.ApplicationWindow):
         thread = threading.Thread(target=_render)
         thread.daemon = True
         thread.start()
+
+    def _launch_openscad(self, _button):
+        subprocess.call("openscad&", shell=True)
 
     def _launch_slicer(self, _button):
         subprocess.call("prusa-slicer&", shell=True)
