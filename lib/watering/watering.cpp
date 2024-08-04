@@ -31,15 +31,13 @@ constexpr unsigned kCfgSet = VariableBase::Flags::kConfig | VariableBase::Flags:
 }  // namespace
 
 const char* Watering::s_state_names[] = {
-    "watering",
-    "pump",
-    "pump done",
-    "soil is moist",
-    "watering disabled",
-    "pump test",
-    "water level test",
-    "dose check",
-    "test",
+    "watering",           // kStateEval
+    "pump",               // kStateDose
+    "pump done",          // kStateEndOfDose
+    "soil is moist",      // kStateWaitForNextCycle
+    "watering disabled",  // kStateDisabled
+    "pump test",          // kStatePumpTest
+    "test",               // kStateTest
 };
 
 String Watering::StateVariable::string() const { return Watering::s_state_names[m_value]; }
