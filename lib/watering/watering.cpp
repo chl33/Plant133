@@ -40,6 +40,25 @@ const char* Watering::s_state_names[] = {
     "test",               // kStateTest
 };
 
+// static
+int Watering::direction() const {
+  switch (m_state.value()) {
+    case kStateEval:
+    case kStateDose:
+    case kStateEndOfDose:
+      return +1;
+
+    case kStateWaitForNextCycle:
+      return -1;
+
+    case kStateDisabled:
+    case kStatePumpTest:
+    case kStateTest:
+      return 0;
+  }
+  return 0;
+}
+
 String Watering::StateVariable::string() const { return Watering::s_state_names[m_value]; }
 bool Watering::StateVariable::fromString(const String& value) {
   if (fromString(value)) {
@@ -54,11 +73,12 @@ bool Watering::StateVariable::fromString(const String& value) {
   return false;
 }
 
-Watering::Watering(const char* name, uint8_t moisture_pin, uint8_t mode_led, uint8_t pump_ctl_pin,
-                   HAApp* app)
+Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8_t mode_led,
+                   uint8_t pump_ctl_pin, HAApp* app)
     : Module(name, &app->module_system()),
       m_app(app),
-      m_dependencies({ConfigInterface::kName, ReservoirCheck::kName, OledDisplayRing::kName}),
+      m_dependencies({ConfigInterface::kName, ReservoirCheck::kName}),
+      m_index(index),
       m_cfg_vg(name, VariableGroup::VarNameType::kWithGroup),
       m_vg(name, VariableGroup::VarNameType::kWithGroup),
       m_status_url(String("/") + name + "/status"),
@@ -82,11 +102,10 @@ Watering::Watering(const char* name, uint8_t moisture_pin, uint8_t mode_led, uin
                        &m_vg) {
   setDependencies(&m_dependencies);
   // 10 seconds after boot, start the plant state machine.
-  m_next_update_msec = millis() + 10 * kMsecInSec;
+  m_next_update_msec = millis() + (10 + 15 * index) * kMsecInSec;
   add_link_fn([this](og3::NameToModule& name_to_module) -> bool {
     m_config = ConfigInterface::get(name_to_module);
     m_reservoir_check = ReservoirCheck::get(name_to_module);
-    m_oled = OledDisplayRing::get(name_to_module);
     return true;
   });
   add_init_fn([this]() {
@@ -116,19 +135,12 @@ Watering::Watering(const char* name, uint8_t moisture_pin, uint8_t mode_led, uin
                             ha::device_class::sensor::kDuration);
       });
     }
-    m_oled->addDisplayFn([this]() {
-      char txt[80];
-      snprintf(txt, sizeof(txt), "moisture: %.1f%%", m_moisture.filteredValue());
-      m_oled->display(txt);
-    });
   });
   add_update_fn([this]() { loop(); });
-  m_app->web_server().on(statusUrl(), [this](AsyncWebServerRequest* request) {
-    this->handleStatusRequest(request);
-  });
-  m_app->web_server().on(configUrl(), [this](AsyncWebServerRequest* request) {
-    this->handleConfigRequest(request);
-  });
+  m_app->web_server().on(
+      statusUrl(), [this](AsyncWebServerRequest* request) { this->handleStatusRequest(request); });
+  m_app->web_server().on(
+      configUrl(), [this](AsyncWebServerRequest* request) { this->handleConfigRequest(request); });
   m_app->web_server().on(pumpTestUrl(), [this](AsyncWebServerRequest* request) {
     testPump();
     request->redirect(statusUrl());
@@ -328,7 +340,7 @@ void Watering::handleStatusRequest(AsyncWebServerRequest* request) {
 #ifndef NATIVE
   m_html.clear();
   html::writeTableInto(&m_html, variables());
-  add_html_button(&m_html, "Configure", configUrl());  
+  add_html_button(&m_html, "Configure", configUrl());
   add_html_button(&m_html, "Test pump", pumpTestUrl());
   m_html += F(HTML_BUTTON("/", "Back"));
   sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
@@ -339,7 +351,7 @@ void Watering::handleConfigRequest(AsyncWebServerRequest* request) {
   ::og3::read(*request, &m_cfg_vg);
   m_html.clear();
   html::writeFormTableInto(&m_html, m_cfg_vg);
-  m_html += F(HTML_BUTTON("/", "Back"));
+  add_html_button(&m_html, "Back", statusUrl());
   sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
   if (m_config) {
     m_config->write_config(m_cfg_vg);

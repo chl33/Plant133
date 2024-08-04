@@ -30,8 +30,11 @@ class ReservoirCheck : public Module {
   }
 
   void mqttUpdate() { m_app->mqttSend(m_vg); }
+  void add_html_status_button(String* body) const { add_html_button(body, name(), "/config"); }
 
  private:
+  void handleConfigRequest(AsyncWebServerRequest* request);
+
   HAApp* const m_app;
   HADependenciesArray<2> m_deps;
   VariableGroup m_cfg_vg;
@@ -41,6 +44,7 @@ class ReservoirCheck : public Module {
   FloatVariable m_pump_seconds_remaining;
   ConfigInterface* m_config = nullptr;
   OledDisplayRing* m_oled = nullptr;
+  String m_html;
 };
 
 }  // namespace og3

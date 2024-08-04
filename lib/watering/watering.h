@@ -5,7 +5,6 @@
 #include <og3/ha_app.h>
 #include <og3/ha_dependencies.h>
 #include <og3/logger.h>
-#include <og3/oled_display_ring.h>
 #include <og3/relay.h>
 
 #include "moisture_sensor.h"
@@ -59,11 +58,18 @@ class Watering : public Module {
 
   static const char* s_state_names[];
 
-  Watering(const char* name,
-	   uint8_t moisture_pin, uint8_t mode_led, uint8_t pump_ctl_pin,
-           HAApp* app);
+  Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8_t mode_led,
+           uint8_t pump_ctl_pin, HAApp* app);
 
   const char* stateName() const { return s_state_names[m_state.value()]; }
+
+  // +1 during watering, -1 waiting for next cycle, 0 if disabled.
+  int direction() const;
+
+  bool isEnabled() const { return m_watering_enabled.value(); }
+  float moisturePercent() const { return m_moisture.filteredValue(); }
+  float maxTarget() const { return m_max_moisture_target.value(); }
+  float minTarget() const { return m_min_moisture_target.value(); }
 
   void setPumpEnable(bool enable);
   void setReservoirCheckEnable(bool enable) { m_reservoir_check_enabled = enable; }
@@ -72,9 +78,7 @@ class Watering : public Module {
   void test() { setState(kStateTest, 100, "full test"); }
   State state() const { return static_cast<State>(m_state.value()); }
   void add_html_status_button(String* body) const { add_html_button(body, name(), statusUrl()); }
-  bool isReservoirEmpty() const {
-    return !m_reservoir_check->haveWater();
-  }
+  bool isReservoirEmpty() const { return !m_reservoir_check->haveWater(); }
 
   const VariableGroup& variables() const { return m_vg; }
 
@@ -97,6 +101,7 @@ class Watering : public Module {
 
   HAApp* const m_app;
   HADependenciesArray<3> m_dependencies;
+  const unsigned m_index;
   VariableGroup m_cfg_vg;
   VariableGroup m_vg;
   const String m_status_url;
@@ -104,7 +109,6 @@ class Watering : public Module {
   const String m_pump_test_url;
   String m_html;
   ReservoirCheck* m_reservoir_check = nullptr;
-  OledDisplayRing* m_oled = nullptr;
   ConfigInterface* m_config = nullptr;
   MoistureSensor m_moisture;
   Relay m_pump;
