@@ -55,7 +55,7 @@ og3::HAApp s_app(
 og3::OledWifiInfo wifi_infof(&s_app.tasks());
 
 og3::VariableGroup s_climate_vg("plant133");
-og3::Shtc3 s_shtc3("temperature", "humidity", &s_app.module_system(), "temperature", &s_climate_vg);
+og3::Shtc3 s_shtc3("temperature", "humidity", &s_app.module_system(), "temperature", s_climate_vg);
 
 og3::ReservoirCheck s_reservoir(kWaterPin, &s_app);
 

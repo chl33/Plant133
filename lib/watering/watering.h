@@ -44,7 +44,7 @@ class Watering : public Module {
   class StateVariable : public EnumVariable<State> {
    public:
     StateVariable(const char* name_, const State value, const char* units_,
-                  const char* description_, unsigned flags_, VariableGroup* group)
+                  const char* description_, unsigned flags_, VariableGroup& group)
         : EnumVariable<State>(name_, value, units_, description_, flags_, group) {}
     String string() const override;
     bool fromString(const String& value) override;
