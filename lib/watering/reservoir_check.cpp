@@ -21,11 +21,11 @@ ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
       m_deps({ConfigInterface::kName}),
       m_cfg_vg(kName),
       m_vg(kName),
-      m_din("reservoir", &m_app->module_system(), pin, "reservoir has water", &m_vg, true),
+      m_din("reservoir", &m_app->module_system(), pin, "reservoir has water", m_vg, true),
       m_pump_seconds_after_low("pump_after_low", kLowWaterSecsRemaining, units::kSeconds,
-                               "pump seconds after low water", kCfgSet, 0, &m_cfg_vg),
+                               "pump seconds after low water", kCfgSet, 0, m_cfg_vg),
       m_pump_seconds_remaining("pump_sec_left", kLowWaterSecsRemaining, units::kSeconds,
-                               "reservoir seconds left", 0, 0, &m_vg) {
+                               "reservoir seconds left", 0, 0, m_vg) {
   setDependencies(&m_deps);
   add_link_fn([this](og3::NameToModule& name_to_module) -> bool {
     m_config = ConfigInterface::get(name_to_module);
@@ -62,7 +62,7 @@ void ReservoirCheck::pumpRanForMsec(float msecs) {
 
 void ReservoirCheck::handleConfigRequest(AsyncWebServerRequest* request) {
 #ifndef NATIVE
-  ::og3::read(*request, &m_cfg_vg);
+  ::og3::read(*request, m_cfg_vg);
   m_html.clear();
   html::writeFormTableInto(&m_html, m_cfg_vg);
   add_html_button(&m_html, "Back", "/");

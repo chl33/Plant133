@@ -14,8 +14,8 @@ namespace og3 {
 class MoistureSensor {
  public:
   MoistureSensor(const char* name, uint8_t pin, const char* raw_description,
-                 const char* description, ModuleSystem* module_system, VariableGroup* cfg_vg,
-                 VariableGroup* vg);
+                 const char* description, ModuleSystem* module_system, VariableGroup& cfg_vg,
+                 VariableGroup& vg);
 
   // -- Parameters for temperature compensation.
   // Set the current temperatures

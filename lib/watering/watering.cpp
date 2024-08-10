@@ -85,21 +85,21 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
       m_config_url(String("/") + name + "/config"),
       m_pump_test_url(String("/") + name + "/pump"),
       m_moisture("soil_moisture", moisture_pin, "raw moisture reading", "soil moisture %",
-                 &app->module_system(), &m_cfg_vg, &m_vg),
-      m_pump("pump", &app->tasks(), pump_ctl_pin, "pump state", true, &m_vg, Relay::OnLevel::kHigh),
+                 &app->module_system(), m_cfg_vg, m_vg),
+      m_pump("pump", &app->tasks(), pump_ctl_pin, "pump state", true, m_vg, Relay::OnLevel::kHigh),
       m_mode_led("mode_led", mode_led, app, 100 /*msec-on*/, false /*onLow*/),
       m_max_moisture_target("max_moisture_target", 80.0f, units::kPercentage, "Max moisture",
-                            kCfgSet, 0, &m_cfg_vg),
+                            kCfgSet, 0, m_cfg_vg),
       m_min_moisture_target("min_moisture_target", 70.0f, units::kPercentage, "Min moisture",
-                            kCfgSet, 0, &m_cfg_vg),
+                            kCfgSet, 0, m_cfg_vg),
       m_pump_dose_msec("pump_on_msec", 3 * kMsecInSec, units::kMilliseconds, "Pump on time",
-                       kCfgSet, 0, &m_cfg_vg),
-      m_state("watering_state", kStateWaitForNextCycle, "", "watering state", 0, &m_vg),
-      m_watering_enabled("watering_enabled", false, "watering enabled", kCfgSet, &m_cfg_vg),
+                       kCfgSet, 0, m_cfg_vg),
+      m_state("watering_state", kStateWaitForNextCycle, "", "watering state", 0, m_vg),
+      m_watering_enabled("watering_enabled", false, "watering enabled", kCfgSet, m_cfg_vg),
       m_reservoir_check_enabled("res_check_enabled", false, "reservior check enabled", kCfgSet,
-                                &m_cfg_vg),
+                                m_cfg_vg),
       m_sec_since_dose("sec_since_pump", 0, units::kSeconds, "seconds since pump dose", 0, 0,
-                       &m_vg) {
+                       m_vg) {
   setDependencies(&m_dependencies);
   // 10 seconds after boot, start the plant state machine.
   m_next_update_msec = millis() + (10 + 15 * index) * kMsecInSec;
@@ -110,7 +110,7 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
   });
   add_init_fn([this]() {
     if (m_config) {
-      m_config->read_config(&m_cfg_vg);
+      m_config->read_config(m_cfg_vg);
     }
 
     auto* ha_discovery = m_dependencies.ha_discovery();
@@ -348,7 +348,7 @@ void Watering::handleStatusRequest(AsyncWebServerRequest* request) {
 }
 void Watering::handleConfigRequest(AsyncWebServerRequest* request) {
 #ifndef NATIVE
-  ::og3::read(*request, &m_cfg_vg);
+  ::og3::read(*request, m_cfg_vg);
   m_html.clear();
   html::writeFormTableInto(&m_html, m_cfg_vg);
   add_html_button(&m_html, "Back", statusUrl());

@@ -15,7 +15,7 @@ constexpr unsigned kCfgSet = VariableBase::Flags::kConfig | VariableBase::Flags:
 
 MoistureSensor::MoistureSensor(const char* name, uint8_t pin, const char* raw_description,
                                const char* description, ModuleSystem* module_system_,
-                               VariableGroup* cfg_vg, VariableGroup* vg)
+                               VariableGroup& cfg_vg, VariableGroup& vg)
     : m_mapped_adc(
           {
               .name = name,
