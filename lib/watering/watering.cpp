@@ -211,13 +211,15 @@ void Watering::loop() {
     }
 #endif
     m_moisture.read(nowMsec);
-    const float level = m_moisture.filteredValue();
-    if (level > m_max_moisture_target.value()) {
-      m_mode_led.delayedBlink(2000, 2);
-    } else if (level < m_min_moisture_target.value()) {
-      m_mode_led.delayedBlink(2000, 3);
-    } else {
-      m_mode_led.delayedBlink(2000, 1);
+    if (m_index == 0) {
+      const float level = m_moisture.filteredValue();
+      if (level > m_max_moisture_target.value()) {
+        m_mode_led.delayedBlink(2000, 2);
+      } else if (level < m_min_moisture_target.value()) {
+        m_mode_led.delayedBlink(2000, 3);
+      } else {
+        m_mode_led.delayedBlink(2000, 1);
+      }
     }
   }
 
