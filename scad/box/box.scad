@@ -67,6 +67,13 @@ module Plant1337_box(top) {
       if (top) {
 	in_Plant1337_board_frame(board_height=true)
 	  shtc3_window(shtc3_loc, space_above_board+wall, wall, false, z_gap=-1);
+	translate([27, 30, outer_dims[2]-epsilon])
+	  color("black") linear_extrude(0.5) {
+	  translate([0, 0, 0]) text("1", size=4);
+	  translate([14, 10, 0]) text("2", size=4);
+	  translate([21, 10, 0]) text("3", size=4);
+	  translate([29, 10, 0]) text("4", size=4);
+	}
       } else {
 	// Stuff to add on bottom.
 	in_Plant1337_board_frame() {

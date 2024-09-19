@@ -11,6 +11,7 @@
 #include <og3/units.h>
 #include <og3/variable.h>
 
+#include <algorithm>
 #include <array>
 
 #include "watering.h"
@@ -27,10 +28,11 @@ const char kSoftware[] = "PlantL33 " SW_VERSION;
 constexpr uint8_t kWaterPin = 23;
 constexpr uint8_t kModeLED = 17;
 
-// gpio32: adc1_ch4 -> mois1
-// gpio33: adc1_ch5 -> mois2
-// gpio34: adc1_ch6 -> mois3
-// gpio35: adc1_ch7 -> mois4
+// Soil moisure sensor ADC pin assignments.
+// - gpio32: adc1_ch4 -> mois1
+// - gpio33: adc1_ch5 -> mois2
+// - gpio34: adc1_ch6 -> mois3
+// - gpio35: adc1_ch7 -> mois4
 constexpr uint8_t kMoistureAnalogPin[4] = {32, 33, 34, 35};
 constexpr uint8_t kPumpCtlPin[4] = {18, 5, 16, 19};
 constexpr unsigned kOledSwitchMsec = 5000;
@@ -123,37 +125,54 @@ constexpr int16_t kScreenWidth = 128;
 constexpr int16_t kScreenHeight = 32;
 constexpr int16_t kMargin = 3;
 
-int16_t percent_to_y(float percent) {
-  const int16_t y = (kScreenHeight - 2 * kMargin) * percent / 100 + kMargin;
-  constexpr int16_t kMax = kScreenHeight - kMargin;
-  constexpr int16_t kMin = kMargin;
-  if (y < kMin) {
-    return kMax;
-  } else if (y >= kMax) {
-    return kMin;
+constexpr int kYScreenTop = kMargin;
+constexpr int kYScreenBot = kScreenHeight - kMargin;
+
+class PercentToY {
+ public:
+  PercentToY(float min, float max) : m_min(min), m_max(max) {
+    const float mid = (m_min + m_max) / 2.0f;
+    const float diff = m_max - m_min;
+    const float pmax = std::min(100.0f, mid + diff);
+    m_pmin = std::max(0.0f, mid - diff);
+    m_slope = (kYScreenTop - kYScreenBot) / (pmax - m_pmin);
   }
-  return kScreenHeight - 1 - y;
-}
+
+  int16_t y(float percent) const {
+    const int16_t out = static_cast<int16_t>((percent - m_pmin) * m_slope) + kYScreenBot;
+    return (out < kYScreenTop) ? kYScreenTop : (out > kYScreenBot) ? kYScreenBot : out;
+  }
+
+ private:
+  const float m_min;
+  const float m_max;
+  float m_slope = 0.0f;
+  float m_pmin = 0.0f;
+};
 
 void draw_graphs() {
   s_oled.clear();
   auto& scr = s_oled.screen();
-  auto line = [&scr](int16_t x, float percent, int16_t offset) {
-    const int16_t y1 = percent_to_y(percent);
-    const int16_t y2 = y1 + offset;
-    // s_app.log().logf("x:%d y1:%d y2:%d", (int)x, (int)y1, (int)y2);
-    scr.drawLine(x - 3, y2, x, y1);
-    scr.drawLine(x, y1, x + 3, y2);
-  };
   for (size_t i = 0; i < plants.size(); i++) {
-    if (!plants[i].isEnabled()) {
+    const auto& plant = plants[i];
+    if (!plant.isEnabled()) {
       continue;
     }
+
+    PercentToY p2y(plant.minTarget(), plant.maxTarget());
+    auto line = [&scr, &p2y](int16_t x, float percent, int16_t offset) {
+      const int16_t y1 = p2y.y(percent);
+      const int16_t y2 = y1 + offset;
+      // s_app.log().logf("x:%d y1:%d y2:%d", (int)x, (int)y1, (int)y2);
+      scr.drawLine(x - 3, y2, x, y1);
+      scr.drawLine(x, y1, x + 3, y2);
+    };
+
     const int16_t x = kScreenWidth * (1 + 2 * i) / 8;
     scr.drawVerticalLine(x, kMargin, kScreenHeight - (2 * kMargin));
-    line(x, plants[i].minTarget(), 0);
-    line(x, plants[i].maxTarget(), 0);
-    line(x, plants[i].moisturePercent(), 3 * plants[i].direction());
+    line(x, plant.minTarget(), 0);
+    line(x, plant.maxTarget(), 0);
+    line(x, plant.moisturePercent(), 3 * plant.direction());
   }
   s_oled.screen().display();
 }
