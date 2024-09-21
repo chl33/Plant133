@@ -1,18 +1,31 @@
 # Plant133
 
-This is the firmware and OpenSCAD project box for the Plant133 project.  Please see my blog about the project at https://selectiveappeal.org.
+This is a full distribution of the Plant133 plant-watering device.  This device can monitor and water up to 4 plants at a time.  This repository hosts the firmware, PCBA design, and OpenSCAD code for the all components.
 
-This is a work in progress.
+There is a writeup of a previous version of this project at https://selectiveappeal.org/posts/plantl33/.  At some point there will be a follow-up post with a description of the current, improved system.
 
-TODO:
-- [ ] Finish the PCB for the 4-plant system, and publish the KiCAD project here.
-- [ ] Document how to compile and print the ebox
-- [ ] Include the design for the watering insert.
-- [ ] Document how to build the entire project.
 
-## Project box
+## PCBA
 
-This requires the library at https://github.com/chl33/ProjectBox.  More information to follow!
+The full [KiCAD](https://www.kicad.org/) project for the printed circuit board is in the [KiCAD](KiCAD/) subdirectory.  KiCAD is a cross platform, open source electronics design system.
+
+![Plant1337 PCBA rendered by KiCAD](images/plant1337-board-kicad.png)
+
+## Components which can be printed with a 3D printer
+
+Several components for the Plant133 device are printed with a 3D printer. These are designed as 3D geometry descriptions in [OpenSCAD](https://openscad.org/).  The code for these are in the [scad](scad/) subdirectory.
+
+### Project box
+
+OpenSCAD code for the project box housing the PCBA is in the [scad/box/](scad/box/) subdirectory.  It requires the library at https://github.com/chl33/ProjectBox.
+
+![EBox design in OpenSCAD](images/scad-plant133-ebox.png)
+
+## Reservoir insert
+
+Inside the water reservoir, an insert holds a float for detecting the water level and 1-4 aquarium pumps for watering the plants.  The code for this insert is in [scad/reservoir_insert](scad/reservoir_insert).
+
+![Reservoir insert with 2 pumps](image/scad-insert-2-pumps.png)
 
 ## Software
 
