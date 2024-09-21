@@ -55,7 +55,7 @@ module Plant1337_box(top) {
 
   difference() {
     union() {
-      project_box(outer_dims,
+      color("white") project_box(outer_dims,
 		  wall_thickness=wall_thickness,
 		  gap=gap,
 		  snaps_on_sides=true,
@@ -65,7 +65,7 @@ module Plant1337_box(top) {
 		  top_cutouts=top_cutouts,
 		  ym_cutouts=ym_cutouts);
       if (top) {
-	in_Plant1337_board_frame(board_height=true)
+	color("white") in_Plant1337_board_frame(board_height=true)
 	  shtc3_window(shtc3_loc, space_above_board+wall, wall, false, z_gap=-1);
 	translate([27, 30, outer_dims[2]-epsilon])
 	  color("black") linear_extrude(0.5) {
@@ -76,7 +76,7 @@ module Plant1337_box(top) {
 	}
       } else {
 	// Stuff to add on bottom.
-	in_Plant1337_board_frame() {
+	color("white") in_Plant1337_board_frame() {
 	  at_corners(board_dims+1.0*X, mount_offset, x_extra=-1.2, y_extra=-0.2)
 	    screw_mount(space_below_board, wall, 2.5/2);
 	}

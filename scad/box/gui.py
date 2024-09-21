@@ -103,10 +103,10 @@ class IntParam:
 _PATTERNS = ((re.compile(r'\/\/ \:GUI\:\n(\w+)\s*=\s*(true|false)\s*;\s*\n'),
               BoolParam),
              (re.compile(r':GUI:float:(\d+(?:\.\d*)?):(\d+(?:\.\d*)?):(\d+(?:\.\d*)?):\n'
-                         '(\w+)\s*=\s*(\d+(?:\.\d*)?)\s*;\s*\n'),
+                         r'(\w+)\s*=\s*(\d+(?:\.\d*)?)\s*;\s*\n'),
               FloatParam),
              (re.compile(r':GUI:int:(\d+):(\d+):\n'
-                         '(\w+)\s*=\s*(\d+?)\s*;\s*\n'),
+                         r'(\w+)\s*=\s*(\d+?)\s*;\s*\n'),
               IntParam))
 
 
