@@ -23,6 +23,12 @@ OpenSCAD code for the project box housing the PCBA is in the [scad/box/](scad/bo
 
 ![EBox design in OpenSCAD](images/scad-plant133-ebox.png)
 
+### Project box reservoir hanger
+
+Code for a plate which allows you to hang the EBox on the side of a water reservoir is in [scad/ebox_hook](scad/ebox_hook). This is screwed to the bottom part of the EBox.
+
+![Reservoir hanger](images/ebox-reservoir-hook.png)
+
 ### Reservoir insert
 
 Inside the water reservoir, an insert holds a float for detecting the water level and 1-4 aquarium pumps for watering the plants.  The code for this insert is in [scad/reservoir_insert](scad/reservoir_insert).
