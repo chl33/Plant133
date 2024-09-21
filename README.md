@@ -41,9 +41,10 @@ A cap for the moisture sensor can hold the end of the watering tube in place in 
 The end of the watering tube can be inserted into a 3D-printed spike with holes in it, which can be inserted into the soil in the plant pot to spread water through the pot.
 
 The spike is printed in two halves which can be epoxied together.
+
 ![Watering spike half](images/scad-moisture-sensor-cap-bot.png)
 
-![Spike photo](images/spike.png)
+![Spike photo](images/spike.jpg)
 
 ## Software
 
