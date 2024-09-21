@@ -55,13 +55,15 @@ og3::HAApp s_app(
 
 // Have oled display IP address or AP status.
 og3::OledWifiInfo wifi_infof(&s_app.tasks());
+// Have OLED screen rotate between different views over time.
+og3::OledDisplayRing s_oled(&s_app.module_system(), kModel, kOledSwitchMsec, og3::Oled::kSixteenPt,
+                            og3::Oled::Orientation::kDefault);
 
+// Temperature/humidity sensing in the vicinity of the device.
 og3::VariableGroup s_climate_vg("plant133");
 og3::Shtc3 s_shtc3("temperature", "humidity", &s_app.module_system(), "temperature", s_climate_vg);
 
-og3::ReservoirCheck s_reservoir(kWaterPin, &s_app);
-
-// A periodic task to monitor temperature/humidity in the area of the device.
+// A periodic task to monitor temperature/humidity and send the results via MQTT.
 og3::PeriodicTaskScheduler climate_scheduler(
     10 * og3::kMsecInSec, og3::kMsecInMin,
     []() {
@@ -70,19 +72,20 @@ og3::PeriodicTaskScheduler climate_scheduler(
     },
     &s_app.tasks());
 
-og3::OledDisplayRing s_oled(&s_app.module_system(), kModel, kOledSwitchMsec, og3::Oled::kSixteenPt,
-                            og3::Oled::Orientation::kDefault);
+// s_reservior monitors the water level of the reservoir: the float, and the number of seconds
+//  the pumps have run since the float detected low water level.
+og3::ReservoirCheck s_reservoir(kWaterPin, &s_app);
 
-// Add the plant-watering system.
-// This is defined in the app's lib/ subdirectory.
-std::array<og3::Watering, 4> plants{{
+// s_plants are the 4 different plant watering sytems.
+// The code for the plant watering system is in lib/watering/.
+std::array<og3::Watering, 4> s_plants{{
     {0, "plant1", kMoistureAnalogPin[0], kModeLED, kPumpCtlPin[0], &s_app},
     {1, "plant2", kMoistureAnalogPin[1], kModeLED, kPumpCtlPin[1], &s_app},
     {2, "plant3", kMoistureAnalogPin[2], kModeLED, kPumpCtlPin[2], &s_app},
     {3, "plant4", kMoistureAnalogPin[3], kModeLED, kPumpCtlPin[3], &s_app},
 }};
 
-// Web interface buttons.
+// Web interface buttons for the main device web page.
 og3::WebButton s_button_wifi_config = s_app.createWifiConfigButton();
 og3::WebButton s_button_mqtt_config = s_app.createMqttConfigButton();
 og3::WebButton s_button_app_status = s_app.createAppStatusButton();
@@ -106,7 +109,7 @@ void handleWebRoot(AsyncWebServerRequest* request) {
   // Add config for reservoir.
   s_reservoir.add_html_status_button(&s_body);
   // Add a button for watering status for each system
-  for (const auto& plant : plants) {
+  for (const auto& plant : s_plants) {
     plant.add_html_status_button(&s_body);
   }
   // Add a button for configuring Wifi.
@@ -121,6 +124,12 @@ void handleWebRoot(AsyncWebServerRequest* request) {
   og3::sendWrappedHTML(request, s_app.board_cname(), kSoftware, s_body.c_str());
 }
 
+// This code draws a graphical display of the watering states of plants that are enabled.
+// A display like this is drawn for each enabled plant, but vertically: -|-->-|-
+// The location of the '>' shows where the moisture level is comparted to the target min and
+//  max value.  The arrow head '>' (drawn as 'v' in the real vertical display) shows that the
+//  plant is not currently being watered.
+// The arrow head points upward when the plant is being watered.
 constexpr int16_t kScreenWidth = 128;
 constexpr int16_t kScreenHeight = 32;
 constexpr int16_t kMargin = 3;
@@ -153,8 +162,8 @@ class PercentToY {
 void draw_graphs() {
   s_oled.clear();
   auto& scr = s_oled.screen();
-  for (size_t i = 0; i < plants.size(); i++) {
-    const auto& plant = plants[i];
+  for (size_t i = 0; i < s_plants.size(); i++) {
+    const auto& plant = s_plants[i];
     if (!plant.isEnabled()) {
       continue;
     }
@@ -181,10 +190,15 @@ void draw_graphs() {
 
 // This function is called once when code is started.
 void setup() {
+  // Register the graphical watering state display as one of the views the OLED display
+  //  will rotate through.
   s_oled.addDisplayFn(draw_graphs);
   // Setup URL handlers in the web server.
+  // Serve static files from the /config subdirectory in flash.
   s_app.web_server().serveStatic("/config/", LittleFS, "/");
+  // Serve the root URL via the handleWebRoot() callback function.
   s_app.web_server().on("/", handleWebRoot);
+  // Run the og3 application setup code.
   s_app.setup();
 }
 
