@@ -4,6 +4,8 @@ This is a full distribution of the Plant133 plant-watering device.  This device 
 
 There is a writeup of a previous version of this project at https://selectiveappeal.org/posts/plantl33/.  At some point there will be a follow-up post with a description of the current, improved system.
 
+![Plant133 device](images/scad-moisture-sensor-cap-bot.png)
+
 
 ## PCBA
 
@@ -21,11 +23,27 @@ OpenSCAD code for the project box housing the PCBA is in the [scad/box/](scad/bo
 
 ![EBox design in OpenSCAD](images/scad-plant133-ebox.png)
 
-## Reservoir insert
+### Reservoir insert
 
 Inside the water reservoir, an insert holds a float for detecting the water level and 1-4 aquarium pumps for watering the plants.  The code for this insert is in [scad/reservoir_insert](scad/reservoir_insert).
 
 ![Reservoir insert with 2 pumps](image/scad-insert-2-pumps.png)
+
+### Moisture sensor cap
+
+A cap for the moisture sensor can hold the end of the watering tube in place in the plant's pot, for when the watering spike is not used.
+
+![Moisture sensor cap top](image/scad-moisture-sensor-cap-4.png)
+![Moisture sensor cap bottom](image/scad-moisture-sensor-cap-bot.png)
+
+### Watering spike
+
+The end of the watering tube can be inserted into a 3D-printed spike with holes in it, which can be inserted into the soil in the plant pot to spread water through the pot.
+
+The spike is printed in two halves which can be epoxied together.
+![Watering spike half](images/scad-moisture-sensor-cap-bot.png)
+
+![Spike photo](images/spike.png)
 
 ## Software
 
