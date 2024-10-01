@@ -1,17 +1,17 @@
 {
     "name": "watering",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "description": "Watering control for Plant1337",
     "authors": [
 	{
 	    "name": "Chris Lee",
 	    "email": "lee.chris.h@gmail.com",
-	    "url": "https://selectiveappeal.org/",
+	    "url": "https://github.com/chl33/Plant133",
 	    "maintainer": true
 	}
     ],
     "dependencies": {
-	"og3": "0.1.5"
+	"og3": "0.2.0"
     },
     "license": "MIT",
     "frameworks": "*",
