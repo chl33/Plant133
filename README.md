@@ -58,3 +58,7 @@ This project is built using my C++ framework for ESP devices.
 - [og3](https://github.com/chl33/og3) My application framework.
 - [og3x-oled](https://github.com/chl33/og3x-oled) Support for the OLED screen I use with this project
 - [og3x-shtc3](https://github.com/chl33/og3x-shtc3) Support for the SHTC3 temperature/humidty sensor used by this project.
+
+## Setup
+
+Please see the [instructions](instructions.md).
