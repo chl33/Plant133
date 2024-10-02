@@ -5,8 +5,8 @@ First, hang the EBox on the reservoir and position the plant and reservoir where
 Then, for each plant to be watered:
 
 1. Put a pump in the reservoir insert.
-2. Connect a moisture connector and pump to the EBox, both under the same number 1, 2, 3, or 4. Use a 3-conductor wire to the moisture sensor using a wire with a length appropriate to the distance between the plant and reservoir.
-3. Run a tube from the pump through the hole in the insert to the plant pot.
+2. Connect a soil moisture sensor and pump to the EBox. The connectors should be in a vertical line under 1, 2, 3, or 4 on the EBox. The soil moisture sensor uses a 3-conductor wire with JST connectors.
+3. Run a tube from the pump, through the hole in the insert, and then to the soil in the pot.
 4. Cut the tube to the right length, and either:
     - Push the end through the hole in the moisture sensor cap to position it for watering the soil, or
     - Insert the end of the tube into a soil spike and then insert the soil spike into the soil.
@@ -19,4 +19,6 @@ Then, for each plant to be watered:
 10. In the device web interface, select the plant to be configured.  Select the minimum and maximum soil moisture levels you want, and select the number of seconds you want the pump to run at each iteration of watering.  Try 1 second for a small pot and 3 seconds for a medium-sized pot.
 11. Enable watering, and enable reservoir water detection.
 12. Fill the reservoir with water.
-13. Monitor the plant-watering and tweak settings so it works how you would like.
+13. Monitor the plant-watering and tweak settings so it works the way you want it to.
+14. You get bonus points for setting up Grafana and creating a dashboard to show how well the watering is working.
+15. You can even more bonus points for using Home Assistant to send you a phone alert you when the reservoir is out of water.
