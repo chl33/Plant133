@@ -4,7 +4,7 @@ This is a full distribution of the Plant133 plant-watering device.  This device 
 
 A writeup about this project is at "[Plant1337: "Water 4 plants](https://selectiveappeal.org/posts/plant1337/)."
 
-![Plant133 device](images/plant1337-box.jpg)
+![Plant133 device](images/plant1337_deployed_trim-1400x600.webp)
 
 
 ## PCBA
