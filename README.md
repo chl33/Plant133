@@ -2,7 +2,7 @@
 
 This is a full distribution of the Plant133 plant-watering device.  This device can monitor and water up to 4 plants at a time.  This repository hosts the firmware, PCBA design, and OpenSCAD code for the all components.
 
-There is a writeup of a previous version of this project at https://selectiveappeal.org/posts/plantl33/.  At some point there will be a follow-up post with a description of the current, improved system.
+A writeup about this project is at "[Plant1337: "Water 4 plants](https://selectiveappeal.org/posts/plant1337/)."
 
 ![Plant133 device](images/plant1337-box.jpg)
 
