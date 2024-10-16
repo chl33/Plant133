@@ -39,7 +39,7 @@ Then, for each plant to be watered:
 
     ![web MQTT config](images/web-mqtt-config.png)
 
-12. In the device web interface, select the plant to be configured, then press "Configure".  Select the minimum and maximum soil moisture levels you want, and select the number of seconds you want the pump to run at each iteration of watering.  Try 1 second for a small pot and 3 seconds for a medium-sized pot.
+12. In the device web interface, select the plant to be configured, then press "Configure".  Select the minimum and maximum soil moisture levels you want, and select the number of seconds you want the pump to run at each iteration of watering.  Try 1 second for a small pot and 3 seconds for a medium-sized pot. You can also calibrate the moisture sensor. Put the moisture sensor in a glass of water so that all except the cap is covered by water, and enter the ADC reading as the "max ADC reading". Remove the sensor out of the glass and dry it off, then enter the ADC reading as the "min ADC reading." Confusingly, the counts for the max reading should be less than the counts for the min reading, because max and min here refer to the moisture level not the counts.
 
     ![web watering config](images/web-water-config.png)
 
