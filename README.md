@@ -48,7 +48,7 @@ The end of the watering tube can be inserted into a 3D-printed spike with holes 
 
 The spike is printed in two halves which can be epoxied together.
 
-![Watering spike half](images/scad-moisture-sensor-cap-bot.png)
+![Watering spike half](images/scad-spike.png)
 
 ![Spike photo](images/spike.jpg)
 
