@@ -30,9 +30,19 @@ Then, for each plant to be watered:
 7. Look for the name of the device, and connect your phone or computer to a WiFi network with that name.
 8. Open a web browser to http://192.168.4.1, and accept the non-encrypted connection.
 9. Use the web interface to configure the device to connect to your home's WiFi network.
+    - Press "WiFi Config" on the main page, and update the configuration. Press "Save", then "Back", the press "Restart" to reboot the device.
+
+	![web WiFi config](images/web-wifi-config.png)
+
 10. Look for the IP address of the device on its screen to open its web interface again.  If mDNS works in your home, you might be able to connect to it as "http://{device-name}.local" where "{device-name}" is replaced with the name of your device.
 11. If you have an MQTT broker in your house, use the web interface to configure the connection to the broker.  If you are running Home Assistant and it works with your MQTT broker, the device will automatically show up in Home Assistant.
-12. In the device web interface, select the plant to be configured.  Select the minimum and maximum soil moisture levels you want, and select the number of seconds you want the pump to run at each iteration of watering.  Try 1 second for a small pot and 3 seconds for a medium-sized pot.
+
+    ![web MQTT config](images/web-mqtt-config.png)
+
+12. In the device web interface, select the plant to be configured, then press "Configure".  Select the minimum and maximum soil moisture levels you want, and select the number of seconds you want the pump to run at each iteration of watering.  Try 1 second for a small pot and 3 seconds for a medium-sized pot.
+
+    ![web watering config](images/web-water-config.png)
+
 13. Enable watering, and enable reservoir water detection.
 14. Fill the reservoir with water.
 15. Monitor the plant-watering and tweak settings so it works the way you want it to.
