@@ -43,7 +43,7 @@ Then, for each plant to be watered:
 
     ![web watering config](images/web-water-config.png)
 
-13. Enable watering, and enable reservoir water detection.
+13. Enable watering, and enable reservoir water detection. Press "Save" and then "Back".
 14. Fill the reservoir with water.
 15. Monitor the plant-watering and tweak settings so it works the way you want it to.
 16. You get bonus points for setting up Grafana and creating a dashboard to show how well the watering is working.
