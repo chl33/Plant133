@@ -2,25 +2,34 @@
 
 First, hang the EBox on the reservoir and position the plant and reservoir where you want them and in a place where you can power the device with the USB cable.
 
+![hang ebox](images/plant133-hang-ebox.jpg)
+
 Then, for each plant to be watered:
 
 1. Install the float in the reservoir insert.
 
-![install float](images/install-float.jpg)
+  ![install float](images/install-float.jpg)
+
+  Then wire the float to the ebox.
+
+![wire float](images/plant133-wire-float.jpg)
 
 2. Put a pump in the reservoir insert.
 
-![install motor](images/install-motor.jpg)
+  ![install motor](images/install-motor.jpg)
 
 3. Connect a soil moisture sensor and pump to the EBox. The connectors should be in a vertical line under 1, 2, 3, or 4 on the EBox. The soil moisture sensor uses a 3-conductor wire with JST connectors.
+
+   ![wire sensor and pump](images/plant133-wire-sensor-pump.jpg)
+
 4. Run a tube from the pump, through the hole in the insert, and then to the soil in the pot.
 
-![install motor-tube](images/install-motor-tube.jpg)
+  ![install motor-tube](images/install-motor-tube.jpg)
 
 5. Cut the tube to the right length, and either:
     - Push the end through the hole in the moisture sensor cap to position it for watering the soil, or
 
-      ![tube aimed at soil](images/tube-aimed-at-soil.jpg)
+   ![tube aimed at soil](images/tube-aimed-at-soil.jpg)
 
     - Insert the end of the tube into a soil spike and then insert the soil spike into the soil.
 
@@ -48,3 +57,7 @@ Then, for each plant to be watered:
 15. Monitor the plant-watering and tweak settings so it works the way you want it to.
 16. You get bonus points for setting up Grafana and creating a dashboard to show how well the watering is working.
 17. You can even more bonus points for using Home Assistant to send you a phone alert you when the reservoir is out of water.
+
+
+
+
