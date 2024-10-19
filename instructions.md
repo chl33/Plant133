@@ -48,7 +48,12 @@ Then, for each plant to be watered:
 
     ![web MQTT config](images/web-mqtt-config.png)
 
-12. In the device web interface, select the plant to be configured, then press "Configure".  Select the minimum and maximum soil moisture levels you want, and select the number of seconds you want the pump to run at each iteration of watering.  Try 1 second for a small pot and 3 seconds for a medium-sized pot. You can also calibrate the moisture sensor. Put the moisture sensor in a glass of water so that all except the cap is covered by water, and enter the ADC reading as the "max ADC reading". Remove the sensor out of the glass and dry it off, then enter the ADC reading as the "min ADC reading." Confusingly, the counts for the max reading should be less than the counts for the min reading, because max and min here refer to the moisture level not the counts.
+12. In the device web interface, select the plant to be configured, then press "Configure".
+
+  - Select the minimum and maximum soil moisture levels you want, and select the number of seconds you want the pump to run at each iteration of watering.  Try 1 second for a small pot and 3 seconds for a medium-sized pot.
+  - You can also calibrate the moisture sensor. Put the moisture sensor in a glass of water so that all except the cap is covered by water, and enter the ADC reading as the "max ADC reading". Remove the sensor out of the glass and dry it off, then enter the ADC reading as the "min ADC reading." Confusingly, the counts for the max reading should be less than the counts for the min reading, because max and min here refer to the moisture level not the counts.
+  - You can set the time to wait between pump doses, which allows water to to spread through the soil and to the moisture sensor. The default is 15 minutes (900 seconds).
+  - There is a safety feature to prevent over-watering if there is a problem with moisture sensing. After a maximum number of pump doses in a watering cycle, watering will pause for 12 hours before watering can continue. The default maximum number of doses is 5, but this can be changed.
 
     ![web watering config](images/web-water-config.png)
 
