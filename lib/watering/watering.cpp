@@ -94,6 +94,8 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
                             kCfgSet, 0, m_cfg_vg),
       m_pump_dose_msec("pump_on_msec", 3 * kMsecInSec, units::kMilliseconds, "Pump on time",
                        kCfgSet, 0, m_cfg_vg),
+      m_between_doses_sec("between_doses_sec", kPumpOffSec, units::kSeconds, "Wait between doses",
+                          kCfgSet, 0, m_cfg_vg),
       m_state("watering_state", kStateWaitForNextCycle, "", "watering state", 0, m_vg),
       m_watering_enabled("watering_enabled", false, "watering enabled", kCfgSet, m_cfg_vg),
       m_reservoir_check_enabled("res_check_enabled", false, "reservior check enabled", kCfgSet,
@@ -193,7 +195,7 @@ void Watering::loop() {
       //  before the watering by more than they were during watering mode.
       // The time in seconds that the state machine might have switched out of watering mode.
       const float stateChangeSec =
-          static_cast<float>(m_pump.lastOnMsec() + kPumpOffMsec) / kMsecInSec;
+          static_cast<float>(m_pump.lastOnMsec()) / kMsecInSec + kPumpOffSec;
       const float secSinceStateChange = static_cast<float>(nowMsec) / kMsecInSec - stateChangeSec;
       // The growing sigma value that should be kKernelWateringSec when the state changed.
       const float sigma1 = secSinceStateChange + kKernelWateringSec;
@@ -231,7 +233,7 @@ void Watering::loop() {
       m_pump.turnOff();
       // Don't consider turning the pump back on until it has been off for the
       //  required amount of time.
-      if (msecSincePump < kPumpOffMsec) {
+      if (msecSincePump < (m_between_doses_sec.value() * kMsecInSec)) {
         setState(kStateEval, kWaitForNextCycleMsec, "pump not off for long enough");
       } else if (reservoirCheckEnabled() && isReservoirEmpty()) {
         // Reservoir may be low, so don't consider using the pump.
@@ -270,7 +272,7 @@ void Watering::loop() {
       if (m_reservoir_check) {
         m_reservoir_check->pumpRanForMsec(m_pump_dose_msec.value());
       }
-      // Eval mode will wait until kPumpOffMsec until it will allow the pump to run again.
+      // Eval mode will wait until kPumpOffSec until it will allow the pump to run again.
       setState(kStateEval, kWaitForNextCycleMsec, "continue watering");
       break;
 
