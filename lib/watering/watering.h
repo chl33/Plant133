@@ -118,6 +118,7 @@ class Watering : public Module {
   FloatVariable m_max_moisture_target;
   FloatVariable m_min_moisture_target;
   FloatVariable m_pump_dose_msec;
+  FloatVariable m_between_doses_sec;
   StateVariable m_state;
   BoolVariable m_watering_enabled;
   BoolVariable m_reservoir_check_enabled;

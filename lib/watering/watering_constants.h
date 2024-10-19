@@ -15,7 +15,7 @@ constexpr long kWaitBetweenPumpAndMoisureReadingMsec = kMsecInSec;
 // < 5% means the sensor is probably not in soil.
 constexpr float kMinPlausibleMoisture = 5.0f;
 // Always wait 15 minutes between pump cycles.
-constexpr long kPumpOffMsec = 15 * kMsecInMin;
+constexpr long kPumpOffSec = 15 * kSecInMin;
 // Wait 1 minute between checks in eval mode while waiting for moisture level to drop.
 constexpr long kWaitForNextCycleMsec = 1 * kMsecInMin;
 
