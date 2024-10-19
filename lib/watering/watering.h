@@ -31,6 +31,9 @@ class Watering : public Module {
     //  go back to kStateEval.
     kStateWaitForNextCycle,
 
+    // After too many does in a cycle, pause for 12 hours.
+    kStateWateringPaused,
+
     // State for when pump is disabled.
     kStateDisabled,
 
@@ -120,9 +123,11 @@ class Watering : public Module {
   FloatVariable m_pump_dose_msec;
   FloatVariable m_between_doses_sec;
   StateVariable m_state;
+  FloatVariable m_sec_since_dose;
+  Variable<unsigned> m_max_doses_per_cycle;
+  Variable<unsigned> m_doses_this_cycle;
   BoolVariable m_watering_enabled;
   BoolVariable m_reservoir_check_enabled;
-  FloatVariable m_sec_since_dose;
 };
 
 }  // namespace og3
