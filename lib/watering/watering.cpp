@@ -248,8 +248,8 @@ void Watering::loop() {
       } else if (m_moisture.readingIsFailed()) {
         setState(kStateDisabled, 1, "failed reading moisture sensor");
       } else if (m_moisture.filteredValue() < kMinPlausibleMoisture) {
-        log()->logf("Moisture sensor reading is too low (%.1f < %.1f).", m_moisture.filteredValue(),
-                    kMinPlausibleMoisture);
+        log()->logf("plant%d: Moisture sensor reading is too low (%.1f < %.1f).", m_index,
+                    m_moisture.filteredValue(), kMinPlausibleMoisture);
         setState(kStateDisabled, 1, "moisture level implausibly low");
       } else {
         // Check whether to turn on the pump.
@@ -348,11 +348,11 @@ void Watering::loop() {
 
 void Watering::setState(State state, unsigned msec, const char* msg) {
   if (m_state.value() != state) {
-    log()->logf("%s -> %s in %d.%03d: %s.", s_state_names[m_state.value()], s_state_names[state],
-                msec / 1000, msec % 1000, msg);
+    log()->logf("plant%u: %s -> %s in %d.%03d: %s.", m_index, s_state_names[m_state.value()],
+                s_state_names[state], msec / 1000, msec % 1000, msg);
   } else {
-    log()->debugf("%s -> %s in %d.%03d: %s.", s_state_names[m_state.value()], s_state_names[state],
-                  msec / 1000, msec % 1000, msg);
+    log()->debugf("plant%u: %s -> %s in %d.%03d: %s.", m_index, s_state_names[m_state.value()],
+                  s_state_names[state], msec / 1000, msec % 1000, msg);
   }
   m_state = state;
   m_next_update_msec = millis() + static_cast<unsigned long>(msec);
@@ -361,11 +361,13 @@ void Watering::setState(State state, unsigned msec, const char* msg) {
 void Watering::_fullTest() {
   // test
   m_moisture.read(millis());
-  log()->logf("Moisture: %s: %d, %.1f", m_moisture.readingIsFailed() ? "NOT OK" : "OK",
-              m_moisture.rawCounts(), m_moisture.filteredValue());
+  log()->logf("plant%u: moisture: %s: %d, %.1f", m_index,
+              m_moisture.readingIsFailed() ? "NOT OK" : "OK", m_moisture.rawCounts(),
+              m_moisture.filteredValue());
   if (m_reservoir_check) {
     m_reservoir_check->read();
-    log()->logf("WaterLevel %s", m_reservoir_check->floatIsFloating() ? "OK" : "LOW");
+    log()->logf("plant%u: waterLevel %s", m_index,
+                m_reservoir_check->floatIsFloating() ? "OK" : "LOW");
   }
   m_mode_led.on();
   delay(100);
