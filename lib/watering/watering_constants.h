@@ -31,4 +31,8 @@ constexpr unsigned kFullMoistureCounts = 1470;
 // Default ADC reading at which to consider soil moisture to be 0%.
 constexpr unsigned kNoMoistureCounts = 2900;
 
+constexpr unsigned kMaxDosesPerCycle = 5;
+
+constexpr unsigned kWateringPauseMsec = 12 * kMsecInHour;
+
 }  // namespace og3
