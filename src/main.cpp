@@ -16,7 +16,7 @@
 
 #include "watering.h"
 
-#define SW_VERSION "0.7.3"
+#define SW_VERSION "0.7.4"
 
 namespace {
 
@@ -44,6 +44,9 @@ og3::HAApp s_app(
                             .withSoftwareName(kSoftware)
                             .withDefaultDeviceName("plant133")
                             .withOta(og3::OtaManager::Options(OTA_PASSWORD))
+#if defined(AP_PASSWORD)
+                            .withWifi(og3::WifiManager::Options().withApPassword(AP_PASSWORD))
+#endif
 #if defined(LOG_UDP) && defined(LOG_UDP_ADDRESS)
                             .withApp(og3::App::Options().withLogType(og3::App::LogType::kUdp))
                             .withUdpLogHost(IPAddress(IPAddress(LOG_UDP_ADDRESS)))
