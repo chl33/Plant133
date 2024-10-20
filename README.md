@@ -7,6 +7,11 @@ A writeup about this project is at "[Plant1337: "Water 4 plants](https://selecti
 ![Plant133 device](images/plant1337_deployed_trim-1400x600.webp)
 
 
+## Setup
+
+Please see the [instructions](instructions.md) for how to setup a Plant133 device if you are lucky enough to have one.
+
+
 ## PCBA
 
 The full [KiCAD](https://www.kicad.org/) project for the printed circuit board is in the [KiCAD](KiCAD/) subdirectory.  KiCAD is a cross platform, open source electronics design system.
@@ -58,7 +63,3 @@ This project is built using my C++ framework for ESP devices.
 - [og3](https://github.com/chl33/og3) My application framework.
 - [og3x-oled](https://github.com/chl33/og3x-oled) Support for the OLED screen I use with this project
 - [og3x-shtc3](https://github.com/chl33/og3x-shtc3) Support for the SHTC3 temperature/humidty sensor used by this project.
-
-## Setup
-
-Please see the [instructions](instructions.md).
