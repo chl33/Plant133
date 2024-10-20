@@ -36,7 +36,7 @@ Then, for each plant to be watered:
 	  ![spike with tube](images/spike-with-tube.jpg)
 	  ![spike in soil](images/spike-in-soil.jpg)
 6. Power the EBox with the USB micro cable.
-7. Look for the name of the device, and connect your phone or computer to a WiFi network with that name.
+7. Look for the name of the device, and connect your phone or computer to a WiFi network with that name. The name of the ESSID may be shown on the device screen, along with the AP password (if set).
 8. Open a web browser to http://192.168.4.1, and accept the non-encrypted connection.
 9. Use the web interface to configure the device to connect to your home's WiFi network.
     - Press "WiFi Config" on the main page, and update the configuration. Press "Save", then "Back", the press "Restart" to reboot the device.
