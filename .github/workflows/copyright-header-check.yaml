@@ -5,9 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install license-header-checker
         run: curl -s https://raw.githubusercontent.com/lluissm/license-header-checker/master/install.sh | bash
       - name: Run license check
-#        run: ./bin/license-header-checker -a -r -i git,.github,.pio ./util/license_header.txt . h cpp scad && [[ -z `git status -s` ]]
-        run: ./bin/license-header-checker -a -r -i git,.github,.pio ./util/license_header.txt . h cpp scad
+        run: ./bin/license-header-checker -a -r -i git,.github,.pio ./util/license_header.txt . h cpp scad && [[ -z `git status -s` ]]
