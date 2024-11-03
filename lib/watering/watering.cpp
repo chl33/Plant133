@@ -28,6 +28,27 @@ float clamp(float val, float minval, float maxval) {
 
 constexpr unsigned kCfgSet = VariableBase::Flags::kConfig | VariableBase::Flags::kSettable;
 
+int wateringDirection(Watering::State state) {
+  switch (state) {
+    case Watering::State::kStateEval:
+    case Watering::State::kStateDose:
+    case Watering::State::kStateEndOfDose:
+      return +1;
+
+    case Watering::State::kStateWaitForNextCycle:
+      return -1;
+
+    case Watering::State::kStateWateringPaused:
+    case Watering::State::kStateDisabled:
+    case Watering::State::kStatePumpTest:
+    case Watering::State::kStateTest:
+      return 0;
+  }
+  return 0;
+}
+
+bool isWatering(Watering::State state) { return wateringDirection(state) == 1; }
+
 }  // namespace
 
 const char* Watering::s_state_names[] = {
@@ -42,24 +63,7 @@ const char* Watering::s_state_names[] = {
 };
 
 // static
-int Watering::direction() const {
-  switch (m_state.value()) {
-    case kStateEval:
-    case kStateDose:
-    case kStateEndOfDose:
-    case kStateWateringPaused:
-      return +1;
-
-    case kStateWaitForNextCycle:
-      return -1;
-
-    case kStateDisabled:
-    case kStatePumpTest:
-    case kStateTest:
-      return 0;
-  }
-  return 0;
-}
+int Watering::direction() const { return wateringDirection(m_state.value()); }
 
 String Watering::StateVariable::string() const { return Watering::s_state_names[m_value]; }
 bool Watering::StateVariable::fromString(const String& value) {
@@ -90,6 +94,7 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
                  &app->module_system(), m_cfg_vg, m_vg),
       m_pump("pump", &app->tasks(), pump_ctl_pin, "pump state", true, m_vg, Relay::OnLevel::kHigh),
       m_mode_led("mode_led", mode_led, app, 100 /*msec-on*/, false /*onLow*/),
+      m_dose_log(m_vg, m_cfg_vg),
       m_max_moisture_target("max_moisture_target", 80.0f, units::kPercentage, "Max moisture",
                             kCfgSet, 0, m_cfg_vg),
       m_min_moisture_target("min_moisture_target", 70.0f, units::kPercentage, "Min moisture",
@@ -100,9 +105,6 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
                           kCfgSet, 0, m_cfg_vg),
       m_state("watering_state", kStateWaitForNextCycle, "", "watering state", 0, m_vg),
       m_sec_since_dose("sec_since_pump", 0, units::kSeconds, "seconds since pump dose", 0, 0, m_vg),
-      m_max_doses_per_cycle("max_doses_per_cycle", kMaxDosesPerCycle, "", "maximum doses per cycle",
-                            kCfgSet, m_cfg_vg),
-      m_doses_this_cycle("doses_this_cycle", 0, "", "doses this cycle", 0, m_vg),
       m_watering_enabled("watering_enabled", false, "watering enabled", kCfgSet, m_cfg_vg),
       m_reservoir_check_enabled("res_check_enabled", false, "reservior check enabled", kCfgSet,
                                 m_cfg_vg) {
@@ -140,9 +142,7 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
         return had->addMeas(json, m_sec_since_dose, ha::device_type::kSensor,
                             ha::device_class::sensor::kDuration);
       });
-      ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
-        return had->addMeas(json, m_doses_this_cycle, ha::device_type::kSensor, nullptr);
-      });
+      m_dose_log.addHADiscovery(ha_discovery);
     }
   });
   add_update_fn([this]() { loop(); });
@@ -189,6 +189,9 @@ void Watering::loop() {
   if (m_reservoir_check) {
     m_reservoir_check->read();
   }
+
+  // Let dose log remove records more than a day old.
+  m_dose_log.update();
 
   const long msecSincePump = nowMsec - m_pump.lastOnMsec();
   m_sec_since_dose = msecSincePump * 1e-3;
@@ -259,7 +262,7 @@ void Watering::loop() {
           //  where we wait for it to fall back below the minimum to start the
           //  watering cycle again.
           setState(kStateWaitForNextCycle, kWaitForNextCycleMsec, "moisture past maximum range");
-        } else if (m_doses_this_cycle.value() >= m_max_doses_per_cycle.value()) {
+        } else if (m_dose_log.shouldPauseWatering()) {
           setState(kStateWateringPaused, kWaitForNextCycleMsec, "too many doses in cycle");
         } else {
           setState(kStateDose, 1, "start pump");
@@ -272,7 +275,7 @@ void Watering::loop() {
     case kStateDose:
       // Start the pump, and run for kPumpOnMsec.
       m_pump.turnOn();
-      m_doses_this_cycle = m_doses_this_cycle.value() + 1;
+      m_dose_log.addDose();
       setState(kStateEndOfDose, m_pump_dose_msec.value(), "end watering dose");
       break;
 
@@ -287,7 +290,6 @@ void Watering::loop() {
       break;
 
     case kStateWateringPaused: {
-      m_doses_this_cycle = 0;
       const float val = m_moisture.filteredValue();
       if (val > m_max_moisture_target.value()) {
         // Moisure level is above the maximum threshold, so switch to the state
@@ -308,7 +310,6 @@ void Watering::loop() {
       // After moisture level reaches maximum level, wait for it to reach minimum
       //  moisture level and also wait for minimum time between watering cycles, then
       //  go back to kStateEval.
-      m_doses_this_cycle = 0;
       const float val = m_moisture.filteredValue();
       if (val < m_min_moisture_target.value()) {
         setState(kStateEval, 1, "start watering");
@@ -321,7 +322,6 @@ void Watering::loop() {
     case kStateDisabled:
       // State for when pump is disabled.
       m_pump.turnOff();
-      m_doses_this_cycle = 0;
       // Update every 10 seconds to get latest readings.
       setState(kStateDisabled, 10 * kMsecInSec, "");
       break;
@@ -329,13 +329,11 @@ void Watering::loop() {
     case kStatePumpTest:
       // State for when testing a single pump cycle, transitions to disabled mode.
       m_pump.turnOn();
-      m_doses_this_cycle = 0;
       setState(kStateDisabled, m_pump_dose_msec.value(), "end of pump test");
       break;
 
     case kStateTest:
       _fullTest();
-      m_doses_this_cycle = 0;
       setState(kStateDisabled, kMsecInSec, "end of  test");
       break;
   }
@@ -348,9 +346,20 @@ void Watering::loop() {
 
 void Watering::setState(State state, unsigned msec, const char* msg) {
   if (m_state.value() != state) {
+    // The watering state changed.
     log()->logf("plant%u: %s -> %s in %d.%03d: %s.", m_index, s_state_names[m_state.value()],
                 s_state_names[state], msec / 1000, msec % 1000, msg);
+    if (!isWatering(m_state.value())) {
+      if (isWatering(state)) {
+        m_dose_log.startWatering();  // Switched from not watering -> watering.
+      }
+    } else {
+      if (!isWatering(state)) {
+        m_dose_log.stopWatering();  // Switched from watering -> not watering.
+      }
+    }
   } else {
+    // The watering state is staying the same.
     log()->debugf("plant%u: %s -> %s in %d.%03d: %s.", m_index, s_state_names[m_state.value()],
                   s_state_names[state], msec / 1000, msec % 1000, msg);
   }
