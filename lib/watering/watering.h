@@ -7,6 +7,7 @@
 #include <og3/logger.h>
 #include <og3/relay.h>
 
+#include "dose_log.h"
 #include "moisture_sensor.h"
 #include "reservoir_check.h"
 
@@ -116,6 +117,7 @@ class Watering : public Module {
   MoistureSensor m_moisture;
   Relay m_pump;
   BlinkLed m_mode_led;
+  DoseLog m_dose_log;
 
   unsigned long m_next_update_msec = 0;
   FloatVariable m_max_moisture_target;
@@ -124,8 +126,6 @@ class Watering : public Module {
   FloatVariable m_between_doses_sec;
   StateVariable m_state;
   FloatVariable m_sec_since_dose;
-  Variable<unsigned> m_max_doses_per_cycle;
-  Variable<unsigned> m_doses_this_cycle;
   BoolVariable m_watering_enabled;
   BoolVariable m_reservoir_check_enabled;
 };
