@@ -291,6 +291,7 @@ void Watering::loop() {
 
     case kStateWateringPaused: {
       const float val = m_moisture.filteredValue();
+      m_pump.turnOff();
       if (val > m_max_moisture_target.value()) {
         // Moisure level is above the maximum threshold, so switch to the state
         //  where we wait for it to fall back below the minimum to start the
@@ -311,6 +312,7 @@ void Watering::loop() {
       //  moisture level and also wait for minimum time between watering cycles, then
       //  go back to kStateEval.
       const float val = m_moisture.filteredValue();
+      m_pump.turnOff();
       if (val < m_min_moisture_target.value()) {
         setState(kStateEval, 1, "start watering");
       } else {
@@ -333,6 +335,7 @@ void Watering::loop() {
       break;
 
     case kStateTest:
+      m_pump.turnOff();
       _fullTest();
       setState(kStateDisabled, kMsecInSec, "end of  test");
       break;
