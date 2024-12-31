@@ -45,11 +45,12 @@ class Watering : public Module {
     kStateTest,
   };
 
-  class StateVariable : public EnumVariable<State> {
+  class StateVariable : public EnumStrVariable<State> {
    public:
-    StateVariable(const char* name_, const State value, const char* units_,
-                  const char* description_, unsigned flags_, VariableGroup& group)
-        : EnumVariable<State>(name_, value, units_, description_, flags_, group) {}
+    StateVariable(const char* name_, const State value, const char* description_, unsigned flags_,
+                  VariableGroup& group)
+        : EnumStrVariable<State>(name_, value, description_, kStateTest, s_state_names, flags_,
+                                 group) {}
     String string() const override;
     bool fromString(const String& value) override;
 

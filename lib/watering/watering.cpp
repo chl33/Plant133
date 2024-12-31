@@ -103,7 +103,7 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
                        kCfgSet, 0, m_cfg_vg),
       m_between_doses_sec("between_doses_sec", kPumpOffSec, units::kSeconds, "Wait between doses",
                           kCfgSet, 0, m_cfg_vg),
-      m_state("watering_state", kStateWaitForNextCycle, "", "watering state", 0, m_vg),
+      m_state("watering_state", kStateWaitForNextCycle, "watering state", 0, m_vg),
       m_sec_since_dose("sec_since_pump", 0, units::kSeconds, "seconds since pump dose", 0, 0, m_vg),
       m_watering_enabled("watering_enabled", false, "watering enabled", kCfgSet, m_cfg_vg),
       m_reservoir_check_enabled("res_check_enabled", false, "reservior check enabled", kCfgSet,
@@ -124,7 +124,7 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
     auto* ha_discovery = m_dependencies.ha_discovery();
     if (m_dependencies.mqtt_manager() && ha_discovery) {
       ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
-        return had->addMeas(json, m_state, ha::device_type::kSensor, nullptr);
+        return had->addEnum(json, m_state, ha::device_type::kSensor, nullptr);
       });
       ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
         return had->addMeas(json, m_moisture.filter().valueVariable(), ha::device_type::kSensor,

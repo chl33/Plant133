@@ -37,24 +37,26 @@ constexpr uint8_t kMoistureAnalogPin[4] = {32, 33, 34, 35};
 constexpr uint8_t kPumpCtlPin[4] = {18, 5, 16, 19};
 constexpr unsigned kOledSwitchMsec = 5000;
 
+#if defined(LOG_UDP) && defined(LOG_UDP_ADDRESS)
+constexpr og3::App::LogType kLogType = og3::App::LogType::kUdp;
+#else
+constexpr og3::App::LogType kLogType = og3::App::LogType::kSerial;  // kSerial
+#endif
+
 // og3 application definition
-og3::HAApp s_app(
-    og3::HAApp::Options(kManufacturer, kModel,
-                        og3::WifiApp::Options()
-                            .withSoftwareName(kSoftware)
-                            .withDefaultDeviceName("plant133")
-                            .withOta(og3::OtaManager::Options(OTA_PASSWORD))
+og3::HAApp s_app(og3::HAApp::Options(
+    kManufacturer, kModel,
+    og3::WifiApp::Options()
+        .withSoftwareName(kSoftware)
+        .withDefaultDeviceName("plant133")
+        .withOta(og3::OtaManager::Options(OTA_PASSWORD))
 #if defined(AP_PASSWORD)
-                            .withWifi(og3::WifiManager::Options().withApPassword(AP_PASSWORD))
+        .withWifi(og3::WifiManager::Options().withApPassword(AP_PASSWORD))
 #endif
 #if defined(LOG_UDP) && defined(LOG_UDP_ADDRESS)
-                            .withApp(og3::App::Options().withLogType(og3::App::LogType::kUdp))
-                            .withUdpLogHost(IPAddress(IPAddress(LOG_UDP_ADDRESS)))
-#else
-                            // .withApp(og3::App::Options().withLogType(og3::App::LogType::kSerial))
-                            .withApp(og3::App::Options().withLogType(og3::App::LogType::kNone))
+        .withUdpLogHost(IPAddress(LOG_UDP_ADDRESS))
 #endif
-                            ));
+        .withApp(og3::App::Options().withLogType(kLogType).withReserveTasks(32))));
 
 // Have oled display IP address or AP status.
 og3::OledWifiInfo wifi_infof(&s_app.tasks());
