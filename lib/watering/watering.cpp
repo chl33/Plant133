@@ -352,14 +352,10 @@ void Watering::setState(State state, unsigned msec, const char* msg) {
     // The watering state changed.
     log()->logf("plant%u: %s -> %s in %d.%03d: %s.", m_index, s_state_names[m_state.value()],
                 s_state_names[state], msec / 1000, msec % 1000, msg);
-    if (!isWatering(m_state.value())) {
-      if (isWatering(state)) {
-        m_dose_log.startWatering();  // Switched from not watering -> watering.
-      }
+    if (isWatering(state)) {
+      m_dose_log.startWatering();
     } else {
-      if (!isWatering(state)) {
-        m_dose_log.stopWatering();  // Switched from watering -> not watering.
-      }
+      m_dose_log.stopWatering();
     }
   } else {
     // The watering state is staying the same.

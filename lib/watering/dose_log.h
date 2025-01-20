@@ -1,3 +1,4 @@
+#include <og3/constants.h>
 #include <og3/ring_buffer.h>
 #include <og3/util.h>
 #include <og3/variable.h>
@@ -5,6 +6,8 @@
 #include <algorithm>
 
 namespace og3 {
+
+const uint64_t kUsecInSec = 1000 * 1000;
 
 // Track the total number of watering doses in a day.
 // This is done to avoid over-watering in case something goes wrong such as problems
@@ -43,9 +46,8 @@ class DoseLog {
 
   // Doses in watering cycles in the last 24 hours.
   struct Dose {
-    Dose() {}
-    explicit Dose(unsigned long millis) { this->millis = millis; }
-    unsigned long millis = 0;
+    Dose() { this->secs = esp_timer_get_time() / kUsecInSec; }
+    uint64_t secs = 0;
     int doses_this_cycle = 0;
     int dose_count = 0;
   };
