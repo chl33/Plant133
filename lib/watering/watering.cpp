@@ -94,7 +94,7 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
                  &app->module_system(), m_cfg_vg, m_vg),
       m_pump("pump", &app->tasks(), pump_ctl_pin, "pump state", true, m_vg, Relay::OnLevel::kHigh),
       m_mode_led("mode_led", mode_led, app, 100 /*msec-on*/, false /*onLow*/),
-      m_dose_log(m_vg, m_cfg_vg),
+      m_dose_log(m_vg, m_cfg_vg, &app->module_system()),
       m_max_moisture_target("max_moisture_target", 80.0f, units::kPercentage, "Max moisture",
                             kCfgSet, 0, m_cfg_vg),
       m_min_moisture_target("min_moisture_target", 70.0f, units::kPercentage, "Min moisture",
@@ -191,7 +191,7 @@ void Watering::loop() {
   }
 
   // Let dose log remove records more than a day old.
-  m_dose_log.update();
+  m_dose_log.update(isWatering(state()));
 
   const long msecSincePump = nowMsec - m_pump.lastOnMsec();
   m_sec_since_dose = msecSincePump * 1e-3;
@@ -352,11 +352,6 @@ void Watering::setState(State state, unsigned msec, const char* msg) {
     // The watering state changed.
     log()->logf("plant%u: %s -> %s in %d.%03d: %s.", m_index, s_state_names[m_state.value()],
                 s_state_names[state], msec / 1000, msec % 1000, msg);
-    if (isWatering(state)) {
-      m_dose_log.startWatering();
-    } else {
-      m_dose_log.stopWatering();
-    }
   } else {
     // The watering state is staying the same.
     log()->debugf("plant%u: %s -> %s in %d.%03d: %s.", m_index, s_state_names[m_state.value()],

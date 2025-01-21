@@ -1,4 +1,5 @@
 #include <og3/constants.h>
+#include <og3/module_system.h>
 #include <og3/ring_buffer.h>
 #include <og3/util.h>
 #include <og3/variable.h>
@@ -7,14 +8,12 @@
 
 namespace og3 {
 
-const uint64_t kUsecInSec = 1000 * 1000;
-
 // Track the total number of watering doses in a day.
 // This is done to avoid over-watering in case something goes wrong such as problems
 //  reading the moisture level of the soil.
 class DoseLog {
  public:
-  DoseLog(VariableGroup& vg, VariableGroup& cfg_vg);
+  DoseLog(VariableGroup& vg, VariableGroup& cfg_vg, ModuleSystem* module_system);
 
   // Return the total number of doses in the last 24 hours.
   unsigned dose_count() const { return m_dose_count.value(); }
@@ -23,19 +22,18 @@ class DoseLog {
   //  a 24 hour period is reached, pause watering for 12 hours.
   bool shouldPauseWatering() const;
 
-  // Call this when a new watering cycle has started.
-  void startWatering();
-  // Call this is increment the count of pump doses in the current watering cycle.
-  void addDose();
   // Call this when the current watering cycle has ended.
-  void stopWatering();
-  // Call this periodically to time-out watering data which is more that 24 hours old.
-  void update();
+  void update(bool is_watering);
+  // Call this is increment the count of pump doses in the current watering cycle.
+  // This should only be called if is_watering.
+  void addDose();
 
   // This registers callbacks for Home Assistant MQTT auto-discovery of variables.
   void addHADiscovery(class HADiscovery* had);
 
  private:
+  Logger* log() { return m_module_system->log(); }
+
   // The maximum number of doses to allow in a cycle/day before watering should be paused.
   Variable<unsigned> m_max_doses_per_cycle;
   // Number of doses in the current watering cycle.
@@ -52,6 +50,7 @@ class DoseLog {
     int dose_count = 0;
   };
   RingQueue<Dose, 16> m_dose_record;
+  ModuleSystem* m_module_system;  // Used to access the logger.
 };
 
 }  // namespace og3
