@@ -297,12 +297,12 @@ void Watering::loop() {
         //  where we wait for it to fall back below the minimum to start the
         //  watering cycle again.
         setState(kStateWaitForNextCycle, kWaitForNextCycleMsec, "moisture past maximum range");
-      } else if (msecSincePump >= kWateringPauseMsec) {
+      } else if (m_dose_log.shouldPauseWatering()) {
+        // Stay in the paused state until it times-out.
+        setState(kStateWateringPaused, kWaitForNextCycleMsec, "");
+      } else {
         // If the pause time expires, go back to eval state.
         setState(kStateEval, 1, "re-enable watering after pause");
-      } else {
-        // Otherwise stay in the paused state.
-        setState(kStateWateringPaused, kWaitForNextCycleMsec, "");
       }
       break;
     }

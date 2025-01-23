@@ -56,7 +56,7 @@ void DoseLog::update(bool is_watering) {
 
   if (!m_watering) {
     const int64_t now_secs = esp_timer_get_time() / kUsecInSec;
-    const int64_t one_day_ago = std::max(static_cast<int64_t>(0), now_secs - kSecInDay);
+    const int64_t one_day_ago = std::max(static_cast<int64_t>(0), now_secs - kWateringPauseSec);
     while (!m_dose_record.empty()) {
       const auto front = m_dose_record.front();
       if (front.secs > one_day_ago) {
