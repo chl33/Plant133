@@ -190,7 +190,8 @@ void Watering::loop() {
     m_reservoir_check->read();
   }
 
-  // Let dose log remove records more than a day old.
+  // Add a new dose record if newly watering, and expire dose records more than a day old
+  //  when not watering.
   m_dose_log.update(isWatering(state()));
 
   const long msecSincePump = nowMsec - m_pump.lastOnMsec();

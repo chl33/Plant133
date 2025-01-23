@@ -22,7 +22,8 @@ class DoseLog {
   //  a 24 hour period is reached, pause watering for 12 hours.
   bool shouldPauseWatering() const;
 
-  // Call this when the current watering cycle has ended.
+  // Call this each time the watering state machine is updated to add a watering-dose
+  //  entry when watering starts, and to expire watering doses after 24 hours.
   void update(bool is_watering);
   // Call this is increment the count of pump doses in the current watering cycle.
   // This should only be called if is_watering.
