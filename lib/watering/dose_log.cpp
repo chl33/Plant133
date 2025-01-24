@@ -10,13 +10,14 @@
 namespace og3 {
 namespace {
 constexpr unsigned kCfgSet = VariableBase::Flags::kConfig | VariableBase::Flags::kSettable;
-}
+}  // namespace
 
-DoseLog::DoseLog(VariableGroup& vg, VariableGroup& cfg_vg)
+DoseLog::DoseLog(VariableGroup& vg, VariableGroup& cfg_vg, ModuleSystem* module_system)
     : m_max_doses_per_cycle("max_doses_per_cycle", kMaxDosesPerCycle, "", "maximum doses per cycle",
                             kCfgSet, cfg_vg),
       m_doses_this_cycle("doses_this_cycle", 0, "", "doses this cycle", 0, vg),
-      m_dose_count("doses_today", 0, "", "doses in the past day", 0, vg) {}
+      m_dose_count("doses_today", 0, "", "doses in the past day", 0, vg),
+      m_module_system(module_system) {}
 
 void DoseLog::addHADiscovery(HADiscovery* had) {
   had->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
@@ -37,34 +38,35 @@ bool DoseLog::shouldPauseWatering() const {
   return false;
 }
 
-void DoseLog::startWatering() {
-  m_dose_record.pushBack(Dose(millis()));
-  m_watering = true;
-}
 void DoseLog::addDose() {
   m_dose_record.back().dose_count += 1;
   m_dose_count = m_dose_count.value() + 1;
   m_doses_this_cycle = m_doses_this_cycle.value() + 1;
 }
-void DoseLog::stopWatering() {
-  m_watering = false;
-  m_doses_this_cycle = 0;
-}
 
-void DoseLog::update() {
-  if (m_watering) {
-    return;
-  }
-  const unsigned long now = millis();
-  const unsigned long one_day_ago =
-      std::max(static_cast<long>(0), static_cast<long>(now) - kMsecInHour * 24);
-  while (!m_dose_record.empty()) {
-    const auto front = m_dose_record.front();
-    if (!isBefore(front.millis, one_day_ago)) {
-      break;
+void DoseLog::update(bool is_watering) {
+  if (m_watering != is_watering) {
+    if (is_watering) {
+      m_dose_record.pushBack({});
+    } else {
+      m_doses_this_cycle = 0;
     }
-    m_dose_count = std::max(0, static_cast<int>(m_dose_count.value()) - front.dose_count);
-    m_dose_record.popFront();
+    m_watering = is_watering;
+  }
+
+  if (!m_watering && !m_dose_record.empty()) {
+    const int64_t now_secs = esp_timer_get_time() / kUsecInSec;
+    const int64_t one_day_ago = std::max(static_cast<int64_t>(0), now_secs - kWateringPauseSec);
+    while (!m_dose_record.empty()) {
+      const auto front = m_dose_record.front();
+      if (front.secs > one_day_ago) {
+        break;  // While dose record is not yet a day old, don't remove it.
+      }
+      log()->logf("Popping dose record (%zu left): %lld sec > %lld.", m_dose_record.size() - 1,
+                  front.secs, one_day_ago);
+      m_dose_count = std::max(0, static_cast<int>(m_dose_count.value()) - front.dose_count);
+      m_dose_record.popFront();
+    }
   }
 }
 

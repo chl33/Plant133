@@ -33,6 +33,6 @@ constexpr unsigned kNoMoistureCounts = 2900;
 
 constexpr unsigned kMaxDosesPerCycle = 5;
 
-constexpr unsigned kWateringPauseMsec = 12 * kMsecInHour;
+constexpr unsigned kWateringPauseSec = kSecInDay;
 
 }  // namespace og3

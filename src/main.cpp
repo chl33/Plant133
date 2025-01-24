@@ -16,7 +16,7 @@
 
 #include "watering.h"
 
-#define SW_VERSION "0.7.4"
+#define SW_VERSION "0.8.1"
 
 namespace {
 

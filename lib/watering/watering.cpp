@@ -94,7 +94,7 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
                  &app->module_system(), m_cfg_vg, m_vg),
       m_pump("pump", &app->tasks(), pump_ctl_pin, "pump state", true, m_vg, Relay::OnLevel::kHigh),
       m_mode_led("mode_led", mode_led, app, 100 /*msec-on*/, false /*onLow*/),
-      m_dose_log(m_vg, m_cfg_vg),
+      m_dose_log(m_vg, m_cfg_vg, &app->module_system()),
       m_max_moisture_target("max_moisture_target", 80.0f, units::kPercentage, "Max moisture",
                             kCfgSet, 0, m_cfg_vg),
       m_min_moisture_target("min_moisture_target", 70.0f, units::kPercentage, "Min moisture",
@@ -190,8 +190,9 @@ void Watering::loop() {
     m_reservoir_check->read();
   }
 
-  // Let dose log remove records more than a day old.
-  m_dose_log.update();
+  // Add a new dose record if newly watering, and expire dose records more than a day old
+  //  when not watering.
+  m_dose_log.update(isWatering(state()));
 
   const long msecSincePump = nowMsec - m_pump.lastOnMsec();
   m_sec_since_dose = msecSincePump * 1e-3;
@@ -297,12 +298,12 @@ void Watering::loop() {
         //  where we wait for it to fall back below the minimum to start the
         //  watering cycle again.
         setState(kStateWaitForNextCycle, kWaitForNextCycleMsec, "moisture past maximum range");
-      } else if (msecSincePump >= kWateringPauseMsec) {
+      } else if (m_dose_log.shouldPauseWatering()) {
+        // Stay in the paused state until it times-out.
+        setState(kStateWateringPaused, kWaitForNextCycleMsec, "");
+      } else {
         // If the pause time expires, go back to eval state.
         setState(kStateEval, 1, "re-enable watering after pause");
-      } else {
-        // Otherwise stay in the paused state.
-        setState(kStateWateringPaused, kWaitForNextCycleMsec, "");
       }
       break;
     }
@@ -352,15 +353,6 @@ void Watering::setState(State state, unsigned msec, const char* msg) {
     // The watering state changed.
     log()->logf("plant%u: %s -> %s in %d.%03d: %s.", m_index, s_state_names[m_state.value()],
                 s_state_names[state], msec / 1000, msec % 1000, msg);
-    if (!isWatering(m_state.value())) {
-      if (isWatering(state)) {
-        m_dose_log.startWatering();  // Switched from not watering -> watering.
-      }
-    } else {
-      if (!isWatering(state)) {
-        m_dose_log.stopWatering();  // Switched from watering -> not watering.
-      }
-    }
   } else {
     // The watering state is staying the same.
     log()->debugf("plant%u: %s -> %s in %d.%03d: %s.", m_index, s_state_names[m_state.value()],
