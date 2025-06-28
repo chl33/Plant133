@@ -101,6 +101,8 @@ class Watering : public Module {
   const char* statusUrl() const { return m_status_url.c_str(); }
   const char* configUrl() const { return m_config_url.c_str(); }
   const char* pumpTestUrl() const { return m_pump_test_url.c_str(); }
+  const char* varname(const char* name, std::string* str);
+
   void handleStatusRequest(AsyncWebServerRequest* request);
   void handleConfigRequest(AsyncWebServerRequest* request);
 
@@ -113,6 +115,12 @@ class Watering : public Module {
   const String m_config_url;
   const String m_pump_test_url;
   String m_html;
+
+  std::string m_moisture_varname;
+  std::string m_pump_varname;
+  std::string m_watering_varname;
+  std::string m_sec_dose_varname;
+
   ReservoirCheck* m_reservoir_check = nullptr;
   ConfigInterface* m_config = nullptr;
   MoistureSensor m_moisture;

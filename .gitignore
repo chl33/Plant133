@@ -11,3 +11,5 @@ secrets*.yaml
 *.old
 *.3mf
 /KiCAD/Plant1337-backups/
+/compile_commands.json
+/.cache/

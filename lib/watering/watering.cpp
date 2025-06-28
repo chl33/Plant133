@@ -79,20 +79,26 @@ bool Watering::StateVariable::fromString(const String& value) {
   return false;
 }
 
+const char* Watering::varname(const char* elname, std::string* str) {
+  *str = std::string(name()) + "_" + elname;
+  return str->c_str();
+}
+
 Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8_t mode_led,
                    uint8_t pump_ctl_pin, HAApp* app)
     : Module(name, &app->module_system()),
       m_app(app),
       m_dependencies({ConfigInterface::kName, ReservoirCheck::kName}),
       m_index(index),
-      m_cfg_vg(name, VariableGroup::VarNameType::kWithGroup),
-      m_vg(name, VariableGroup::VarNameType::kWithGroup),
+      m_cfg_vg(name),
+      m_vg(name),
       m_status_url(String("/") + name + "/status"),
       m_config_url(String("/") + name + "/config"),
       m_pump_test_url(String("/") + name + "/pump"),
-      m_moisture("soil_moisture", moisture_pin, "raw moisture reading", "soil moisture %",
-                 &app->module_system(), m_cfg_vg, m_vg),
-      m_pump("pump", &app->tasks(), pump_ctl_pin, "pump state", true, m_vg, Relay::OnLevel::kHigh),
+      m_moisture(varname("soil_moisture", &m_moisture_varname), moisture_pin,
+                 "raw moisture reading", "soil moisture %", &app->module_system(), m_cfg_vg, m_vg),
+      m_pump(varname("pump", &m_pump_varname), &app->tasks(), pump_ctl_pin, "pump state", true,
+             m_vg, Relay::OnLevel::kHigh),
       m_mode_led("mode_led", mode_led, app, 100 /*msec-on*/, false /*onLow*/),
       m_dose_log(m_vg, m_cfg_vg, &app->module_system()),
       m_max_moisture_target("max_moisture_target", 80.0f, units::kPercentage, "Max moisture",
@@ -103,8 +109,10 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
                        kCfgSet, 0, m_cfg_vg),
       m_between_doses_sec("between_doses_sec", kPumpOffSec, units::kSeconds, "Wait between doses",
                           kCfgSet, 0, m_cfg_vg),
-      m_state("watering_state", kStateWaitForNextCycle, "watering state", 0, m_vg),
-      m_sec_since_dose("sec_since_pump", 0, units::kSeconds, "seconds since pump dose", 0, 0, m_vg),
+      m_state(varname("watering_state", &m_watering_varname), kStateWaitForNextCycle,
+              "watering state", 0, m_vg),
+      m_sec_since_dose(varname("sec_since_pump", &m_sec_dose_varname), 0, units::kSeconds,
+                       "seconds since pump dose", 0, 0, m_vg),
       m_watering_enabled("watering_enabled", false, "watering enabled", kCfgSet, m_cfg_vg),
       m_reservoir_check_enabled("res_check_enabled", false, "reservior check enabled", kCfgSet,
                                 m_cfg_vg) {

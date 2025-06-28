@@ -16,12 +16,12 @@
 
 #include "watering.h"
 
-#define SW_VERSION "0.8.1"
+#define SW_VERSION "0.8.2"
 
 namespace {
 
 const char kManufacturer[] = "Chris Lee";
-const char kModel[] = "Plantl337a";
+const char kModel[] = "Plantl337";
 const char kSoftware[] = "PlantL33 " SW_VERSION;
 
 // -- Hardware configuration,
