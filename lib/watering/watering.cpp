@@ -100,7 +100,8 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
       m_pump(varname("pump", &m_pump_varname), &app->tasks(), pump_ctl_pin, "pump state", true,
              m_vg, Relay::OnLevel::kHigh),
       m_mode_led("mode_led", mode_led, app, 100 /*msec-on*/, false /*onLow*/),
-      m_dose_log(m_vg, m_cfg_vg, &app->module_system()),
+      m_dose_log(m_vg, m_cfg_vg, &app->module_system(), this),
+      m_plant_name("name", name, nullptr, nullptr, kCfgSet, m_cfg_vg),
       m_max_moisture_target("max_moisture_target", 80.0f, units::kPercentage, "Max moisture",
                             kCfgSet, 0, m_cfg_vg),
       m_min_moisture_target("min_moisture_target", 70.0f, units::kPercentage, "Min moisture",
@@ -129,26 +130,43 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
       m_config->read_config(m_cfg_vg);
     }
 
+    if (!m_watering_enabled.value()) {
+      return;
+    }
+
+    auto addEntry = [this](HADiscovery::Entry& entry, HADiscovery* had, JsonDocument* json) {
+      char device_id[80];
+      snprintf(device_id, sizeof(device_id), "%s_%s", had->deviceId(), this->name());
+      entry.device_name = this->plantName().c_str();
+      entry.device_id = device_id;
+      return had->addEntry(json, entry);
+    };
+
     auto* ha_discovery = m_dependencies.ha_discovery();
     if (m_dependencies.mqtt_manager() && ha_discovery) {
-      ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
-        return had->addEnum(json, m_state, ha::device_type::kSensor, nullptr);
+      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+        HADiscovery::Entry entry(m_state, ha::device_type::kSensor);
+        return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
-        return had->addMeas(json, m_moisture.filter().valueVariable(), ha::device_type::kSensor,
-                            ha::device_class::sensor::kMoisture);
+      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+        HADiscovery::Entry entry(m_moisture.filter().valueVariable(), ha::device_type::kSensor,
+                                 ha::device_class::sensor::kMoisture);
+        return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
-        return had->addMeas(json, m_moisture.adc().mapped_value(), ha::device_type::kSensor,
-                            ha::device_class::sensor::kMoisture);
+      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+        HADiscovery::Entry entry(m_moisture.adc().mapped_value(), ha::device_type::kSensor,
+                                 ha::device_class::sensor::kMoisture);
+        return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
-        return had->addMeas(json, m_pump.isHighVar(), ha::device_type::kBinarySensor,
-                            ha::device_class::binary_sensor::kPower);
+      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+        HADiscovery::Entry entry(m_pump.isHighVar(), ha::device_type::kBinarySensor,
+                                 ha::device_class::binary_sensor::kPower);
+        return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
-        return had->addMeas(json, m_sec_since_dose, ha::device_type::kSensor,
-                            ha::device_class::sensor::kDuration);
+      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+        HADiscovery::Entry entry(m_sec_since_dose, ha::device_type::kSensor,
+                                 ha::device_class::sensor::kDuration);
+        return addEntry(entry, had, json);
       });
       m_dose_log.addHADiscovery(ha_discovery);
     }

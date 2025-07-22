@@ -1,3 +1,4 @@
+#pragma once
 // Copyright (c) 2024 Chris Lee and contibuters.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
@@ -76,13 +77,17 @@ class Watering : public Module {
   float maxTarget() const { return m_max_moisture_target.value(); }
   float minTarget() const { return m_min_moisture_target.value(); }
 
+  const String& plantName() const { return m_plant_name.value(); }
+
   void setPumpEnable(bool enable);
   void setReservoirCheckEnable(bool enable) { m_reservoir_check_enabled = enable; }
   bool reservoirCheckEnabled() const { return m_reservoir_check_enabled.value(); }
   void testPump() { setState(kStatePumpTest, 100, "test pump"); }
   void test() { setState(kStateTest, 100, "full test"); }
   State state() const { return static_cast<State>(m_state.value()); }
-  void add_html_status_button(String* body) const { add_html_button(body, name(), statusUrl()); }
+  void add_html_status_button(String* body) const {
+    add_html_button(body, plantName().c_str(), statusUrl());
+  }
   bool isReservoirEmpty() const { return !m_reservoir_check->haveWater(); }
 
   const VariableGroup& variables() const { return m_vg; }
@@ -116,6 +121,7 @@ class Watering : public Module {
   const String m_pump_test_url;
   String m_html;
 
+  std::string m_device_id;
   std::string m_moisture_varname;
   std::string m_pump_varname;
   std::string m_watering_varname;
@@ -129,6 +135,7 @@ class Watering : public Module {
   DoseLog m_dose_log;
 
   unsigned long m_next_update_msec = 0;
+  Variable<String> m_plant_name;
   FloatVariable m_max_moisture_target;
   FloatVariable m_min_moisture_target;
   FloatVariable m_pump_dose_msec;

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <og3/constants.h>
 #include <og3/module_system.h>
 #include <og3/ring_buffer.h>
@@ -8,12 +10,15 @@
 
 namespace og3 {
 
+class Watering;
+
 // Track the total number of watering doses in a day.
 // This is done to avoid over-watering in case something goes wrong such as problems
 //  reading the moisture level of the soil.
 class DoseLog {
  public:
-  DoseLog(VariableGroup& vg, VariableGroup& cfg_vg, ModuleSystem* module_system);
+  DoseLog(VariableGroup& vg, VariableGroup& cfg_vg, ModuleSystem* module_system,
+          Watering* watering);
 
   // Return the total number of doses in the last 24 hours.
   unsigned dose_count() const { return m_dose_count.value(); }
@@ -36,16 +41,13 @@ class DoseLog {
   Logger* log() { return m_module_system->log(); }
   const char* varname(const char* elname, const VariableGroup& vg, std::string* str);
 
-  std::string m_str_doses_this_cycle;
-  std::string m_str_doses_today;
-
   // The maximum number of doses to allow in a cycle/day before watering should be paused.
   Variable<unsigned> m_max_doses_per_cycle;
   // Number of doses in the current watering cycle.
   Variable<unsigned> m_doses_this_cycle;
   // Number of doses in the last 24 hours.
   Variable<unsigned> m_dose_count;
-  bool m_watering = false;
+  bool m_is_watering = false;
 
   // Doses in watering cycles in the last 24 hours.
   struct Dose {
@@ -56,6 +58,7 @@ class DoseLog {
   };
   RingQueue<Dose, 16> m_dose_record;
   ModuleSystem* m_module_system;  // Used to access the logger.
+  Watering* m_watering;
 };
 
 }  // namespace og3
