@@ -41,6 +41,9 @@ class DoseLog {
   Logger* log() { return m_module_system->log(); }
   const char* varname(const char* elname, const VariableGroup& vg, std::string* str);
 
+  std::string m_str_doses_this_cycle;
+  std::string m_str_doses_today;
+
   // The maximum number of doses to allow in a cycle/day before watering should be paused.
   Variable<unsigned> m_max_doses_per_cycle;
   // Number of doses in the current watering cycle.
