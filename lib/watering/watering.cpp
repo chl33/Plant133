@@ -139,6 +139,7 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
       snprintf(device_id, sizeof(device_id), "%s_%s", had->deviceId(), this->name());
       entry.device_name = this->plantName().c_str();
       entry.device_id = device_id;
+      entry.via_device = had->deviceId();
       return had->addEntry(json, entry);
     };
 
