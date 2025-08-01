@@ -1,4 +1,4 @@
-// Copyright (c) 2024 Chris Lee and contibuters.
+// Copyright (c) 2025 Chris Lee and contibuters.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 #include <Arduino.h>
@@ -16,12 +16,12 @@
 
 #include "watering.h"
 
-#define SW_VERSION "0.8.1"
+#define SW_VERSION "0.8.3"
 
 namespace {
 
 const char kManufacturer[] = "Chris Lee";
-const char kModel[] = "Plantl337a";
+const char kModel[] = "Plantl337";
 const char kSoftware[] = "PlantL33 " SW_VERSION;
 
 // -- Hardware configuration,
