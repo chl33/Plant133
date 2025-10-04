@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 #include <Arduino.h>
+#include <AsyncJson.h>
+#include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <og3/constants.h>
 #include <og3/ha_app.h>
@@ -14,9 +16,12 @@
 #include <algorithm>
 #include <array>
 
+#include "ArduinoJson/Deserialization/DeserializationError.hpp"
+#include "ArduinoJson/Deserialization/deserialize.hpp"
+#include "ArduinoJson/Document/JsonDocument.hpp"
 #include "watering.h"
 
-#define SW_VERSION "0.8.3"
+#define SW_VERSION "0.9.0"
 
 namespace {
 
@@ -34,7 +39,13 @@ constexpr uint8_t kModeLED = 17;
 // - gpio34: adc1_ch6 -> mois3
 // - gpio35: adc1_ch7 -> mois4
 constexpr uint8_t kMoistureAnalogPin[4] = {32, 33, 34, 35};
+#if BOARD_V13
+// The pins on the v1.3 board. Changed pump-2 pin to not be on when power is first applied.
+constexpr uint8_t kPumpCtlPin[4] = {18, 13, 16, 19};
+#else
+// The pins on the v1.2 board.
 constexpr uint8_t kPumpCtlPin[4] = {18, 5, 16, 19};
+#endif
 constexpr unsigned kOledSwitchMsec = 5000;
 
 #if defined(LOG_UDP) && defined(LOG_UDP_ADDRESS)
@@ -123,6 +134,11 @@ void handleWebRoot(AsyncWebServerRequest* request) {
   s_button_mqtt_config.add_button(&s_body);
   // Add a button for looking at app state.
   s_button_app_status.add_button(&s_body);
+
+  s_body +=
+      ("<p><button onclick=\"location.href='/static/test.html'\" type=\"button\">"
+       "Test</button></p>\n");
+
   // Add a button for rebooting the device.
   s_button_restart.add_button(&s_body);
   // Send the page back to the web client.
@@ -191,6 +207,73 @@ void draw_graphs() {
   s_oled.screen().display();
 }
 
+// Return current system status as JSON for AJAX status calls.
+void statusJson(AsyncWebServerRequest* request) {
+  static String s_body;
+
+  s_body.clear();
+  s_shtc3.read();
+  JsonDocument json;
+
+  s_climate_vg.toJson(&json, 0);
+  s_reservoir.variables().toJson(&json, 0);
+  s_plants[0].variables().toJson(&json, 0);
+  s_plants[1].variables().toJson(&json, 0);
+  s_plants[2].variables().toJson(&json, 0);
+  s_plants[3].variables().toJson(&json, 0);
+  serializeJson(json, s_body);
+
+  request->send(200, "application/json", s_body);
+}
+
+// Handle ajax POSTS with pump-test commands like: "{pumpId: 1, duration: 1000}"
+void pumpTest(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
+  static String s_body;
+
+  JsonDocument json;
+  auto failed = [&json](const char* text) {
+    json["message"] = text;
+    return false;
+  };
+
+  if (!jsonIn.is<JsonObject>()) {
+    failed("Not an object");
+    serializeJson(json, s_body);
+    request->send(200, "application/json", s_body);
+    return;
+  }
+  const JsonObject jsonObj = jsonIn.as<JsonObject>();
+
+  auto run = [&jsonObj, &json]() -> bool {
+    auto get = [&jsonObj, &json](const char* id, int min, int max) -> int {
+      const JsonVariant val = jsonObj[id];
+      if (!val.is<int>()) {
+        json["message"] = (String("No ") + id);
+        return min - 1;
+      }
+      const int ival = val.as<int>();
+      if (ival < min || ival > max) {
+        json["message"] = (String("Bad value for ") + id);
+        return min - 1;
+      }
+      return ival;
+    };
+    const int pump_id = get("pumpId", 1, 4);
+    const int duration = get("duration", 0, 10000);
+    if (pump_id < 1 || duration < 0) {
+      return false;
+    }
+    auto& plant = s_plants[pump_id - 1];
+    plant.relay().turnOn(duration);
+    return true;
+  };
+
+  s_body.clear();
+  json["isOk"] = run();
+  serializeJson(json, s_body);
+  request->send(200, "application/json", s_body);
+}
+
 }  // namespace
 
 // This function is called once when code is started.
@@ -203,6 +286,16 @@ void setup() {
   s_app.web_server().serveStatic("/config/", LittleFS, "/");
   // Serve the root URL via the handleWebRoot() callback function.
   s_app.web_server().on("/", handleWebRoot);
+  s_app.web_server().on("/test/status", statusJson);
+
+  {  // Add pump test json callback.
+    AsyncCallbackJsonWebHandler* pumpTestHandler = new AsyncCallbackJsonWebHandler("/test/pump");
+    pumpTestHandler->setMethod(HTTP_POST);
+    pumpTestHandler->onRequest(
+        [](AsyncWebServerRequest* request, JsonVariant& json) { pumpTest(request, json); });
+    s_app.web_server().addHandler(pumpTestHandler);
+  }
+
   // Run the og3 application setup code.
   s_app.setup();
 }

@@ -92,6 +92,8 @@ class Watering : public Module {
 
   const VariableGroup& variables() const { return m_vg; }
 
+  Relay& relay() { return m_pump; }
+
   void loop();
 
  protected:

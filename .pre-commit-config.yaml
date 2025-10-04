@@ -7,5 +7,6 @@ repos:
             (?x)^(
                 .*/.pio/.*|
                 .*\.proto|
-                .*\.json
+                .*\.json|
+                .*\.js
             )$

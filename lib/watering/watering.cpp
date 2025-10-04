@@ -411,7 +411,7 @@ void Watering::handleStatusRequest(AsyncWebServerRequest* request) {
   html::writeTableInto(&m_html, variables());
   add_html_button(&m_html, "Configure", configUrl());
   add_html_button(&m_html, "Test pump", pumpTestUrl());
-  m_html += F(HTML_BUTTON("/", "Back"));
+  m_html += HTML_BUTTON("/", "Back");
   sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
 #endif
 }

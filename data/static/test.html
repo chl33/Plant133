@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<link rel="stylesheet" href="/static/styles.css">
+<title>Plant1337 test</title>
+</head>
+<body>
+  <script src="/static/script.js"></script>
+  <div class="main">
+    <div style='text-align:center;'>
+      <noscript>To use this page, you need to activate Javascript<br></noscript>
+      <h3>plantl337 test</h3>
+    </div>
+<table class="readings">
+<thead><tr><th colspan="2">Sensor data</th></tr></thead>
+<tbody>
+  <tr><td>Temperature</td><td id="temp">--</td></tr>
+  <tr><td>Humidity</td><td id="humidity">--</td></tr>
+  <tr><td>Reservoir</td><td id="reservoir">--</td></tr>
+</tbody>
+</table>
+<table class="readings">
+  <thead><tr><th colspan="4">Soil moisture</th></tr></thead>
+<tbody>
+  <tr><th>Plant</th><th>Raw</th><th>Percent</th><th>Filtered</th></tr>
+  <tr style="text-align:right;">
+    <td>1</td><td id="mstr1">--</td><td id="mstr_pct1">--</td><td id="mstr_flt_pct1">--</td>
+  </tr>
+  <tr style="text-align:right;">
+    <td>2</td><td id="mstr2">--</td><td id="mstr_pct2">--</td><td id="mstr_flt_pct2">--</td>
+  </tr>
+  <tr style="text-align:right;">
+    <td>3</td><td id="mstr3">--</td><td id="mstr_pct3">--</td><td id="mstr_flt_pct3">--</td>
+  </tr>
+  <tr style="text-align:right;">
+    <td>4</td><td id="mstr4">--</td><td id="mstr_pct4">--</td><td id="mstr_flt_pct4">--</td>
+  </tr>
+</tbody>
+</table>
+
+<div id="control-buttons">
+<div style='text-align:center;'><b>Pump test</b></div>
+<p><button id="pump1-btn" data-pump-id="1">Pump 1</button></p>
+<p><button id="pump2-btn" data-pump-id="2">Pump 2</button></p>
+<p><button id="pump3-btn" data-pump-id="3">Pump 3</button></p>
+<p><button id="pump4-btn" data-pump-id="4">Pump 4</button></p>
+<p><form action='/' method='get'><button>Back</button></form></p>
+</div>
+
+<div id="status-message" style="margin-top: 20px; color: green;"></div>
+
+<br>
+<div style='text-align:right;font-size:10px;color: grey;'>
+  <hr>PlantL33</div>
+</div>
+</div>
+  
+</body>
+</html>
