@@ -91,10 +91,14 @@ class Watering : public Module {
   bool isReservoirEmpty() const { return !m_reservoir_check->haveWater(); }
 
   const VariableGroup& variables() const { return m_vg; }
+  const VariableGroup& configVariables() const { return m_cfg_vg; }
 
   Relay& relay() { return m_pump; }
 
   void loop();
+
+  void getApiPlants(JsonObject json) const;
+  String putApiPlants(JsonObject json);
 
  protected:
   // This method performs the work of the state machine.

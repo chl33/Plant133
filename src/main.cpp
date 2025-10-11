@@ -19,6 +19,7 @@
 #include "ArduinoJson/Deserialization/DeserializationError.hpp"
 #include "ArduinoJson/Deserialization/deserialize.hpp"
 #include "ArduinoJson/Document/JsonDocument.hpp"
+#include "svelteesp32async.h"
 #include "watering.h"
 
 #define SW_VERSION "0.9.0"
@@ -107,12 +108,13 @@ og3::WebButton s_button_mqtt_config = s_app.createMqttConfigButton();
 og3::WebButton s_button_app_status = s_app.createAppStatusButton();
 og3::WebButton s_button_restart = s_app.createRestartButton();
 
+static String s_body;
+
 // Web callback for main device web page.
 void handleWebRoot(AsyncWebServerRequest* request) {
   // The send of the web page happens asynchronously after this function exits, so we need to make
   // sure the storage for the page remains.  I don't know of a great way to handle the case where
   // multiple clients are being served data at once.
-  static String s_body;
   s_body.clear();
   s_shtc3.read();
   og3::html::writeTableInto(&s_body, s_climate_vg);
@@ -209,28 +211,77 @@ void draw_graphs() {
 
 // Return current system status as JSON for AJAX status calls.
 void statusJson(AsyncWebServerRequest* request) {
-  static String s_body;
-
   s_body.clear();
   s_shtc3.read();
-  JsonDocument json;
+  JsonDocument jsondoc;
+  JsonObject json = jsondoc.to<JsonObject>();
 
-  s_climate_vg.toJson(&json, 0);
-  s_reservoir.variables().toJson(&json, 0);
-  s_plants[0].variables().toJson(&json, 0);
-  s_plants[1].variables().toJson(&json, 0);
-  s_plants[2].variables().toJson(&json, 0);
-  s_plants[3].variables().toJson(&json, 0);
-  serializeJson(json, s_body);
-
+  s_climate_vg.toJson(json, 0);
+  s_reservoir.variables().toJson(json, 0);
+  for (const auto& plant : s_plants) {
+    plant.variables().toJson(json, 0);
+  }
+  serializeJson(jsondoc, s_body);
   request->send(200, "application/json", s_body);
 }
 
-// Handle ajax POSTS with pump-test commands like: "{pumpId: 1, duration: 1000}"
-void pumpTest(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
-  static String s_body;
+void apiGetPlants(AsyncWebServerRequest* request) {
+  JsonDocument jsondoc;
+  JsonArray array = jsondoc.to<JsonArray>();
 
-  JsonDocument json;
+  int id = 0;
+  for (const auto& plant : s_plants) {
+    JsonObject json = array.add<JsonObject>();
+    id += 1;
+    json["id"] = id;
+    plant.getApiPlants(json);
+  }
+  serializeJson(jsondoc, s_body);
+  request->send(200, "application/json", s_body);
+}
+
+void apiGetMoisture(AsyncWebServerRequest* request) {
+  JsonDocument jsondoc;
+  JsonArray array = jsondoc.to<JsonArray>();
+
+  int id = 0;
+  for (const auto& plant : s_plants) {
+    JsonObject json = array.add<JsonObject>();
+    id += 1;
+    json["id"] = id;
+    json["moisture"] = plant.moisturePercent();
+  }
+  serializeJson(jsondoc, s_body);
+  request->send(200, "application/json", s_body);
+}
+
+// Return current system status as JSON for AJAX status calls.
+void putApiPlant(int id, AsyncWebServerRequest* request, JsonVariant& jsonIn) {
+  if (id < 1 || id > static_cast<int>(s_plants.size())) {
+    request->send(500, "text/plain", "bad plant id");
+    return;
+  }
+  if (!jsonIn.is<JsonObject>()) {
+    request->send(500, "text/plain", "not a json object");
+    return;
+  }
+  JsonObject obj = jsonIn.as<JsonObject>();
+  String res = s_plants[id - 1].putApiPlants(obj);
+  if (res != "") {
+    res += " " + String(obj.size());
+    for (auto iter : obj) {
+      res += String(" ") + iter.key().c_str();
+    }
+    request->send(500, "text/plain", res);
+    return;
+  }
+  request->send(200, "text/plain", "ok");
+}
+
+// Handle ajax POSTS with pump-test commands like: "{pumpId: 1, duration: 1000}"
+void pumpTest(AsyncWebServerRequest* request, JsonVariant jsonIn) {
+  JsonDocument jsondoc;
+  JsonObject json = jsondoc.to<JsonObject>();
   auto failed = [&json](const char* text) {
     json["message"] = text;
     return false;
@@ -238,7 +289,7 @@ void pumpTest(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
 
   if (!jsonIn.is<JsonObject>()) {
     failed("Not an object");
-    serializeJson(json, s_body);
+    serializeJson(jsondoc, s_body);
     request->send(200, "application/json", s_body);
     return;
   }
@@ -274,6 +325,20 @@ void pumpTest(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
   request->send(200, "application/json", s_body);
 }
 
+// Return current system status as JSON for AJAX status calls.
+void configJson(AsyncWebServerRequest* request) {
+  s_body.clear();
+  JsonDocument jsondoc;
+  JsonObject json = jsondoc.to<JsonObject>();
+
+  s_reservoir.configVariables().toJson(json, og3::VariableBase::Flags::kConfig);
+  for (const auto& plant : s_plants) {
+    plant.configVariables().toJson(json, og3::VariableBase::Flags::kConfig);
+  }
+  serializeJson(jsondoc, s_body);
+  request->send(200, "application/json", s_body);
+}
+
 }  // namespace
 
 // This function is called once when code is started.
@@ -285,15 +350,30 @@ void setup() {
   // Serve static files from the /config subdirectory in flash.
   s_app.web_server().serveStatic("/config/", LittleFS, "/");
   // Serve the root URL via the handleWebRoot() callback function.
-  s_app.web_server().on("/", handleWebRoot);
   s_app.web_server().on("/test/status", statusJson);
+  s_app.web_server().on("/test/config", configJson);
+  s_app.web_server().on("/root", handleWebRoot);
+  initSvelteStaticFiles(&s_app.web_server());
+  s_app.web_server().on("/api/plants", HTTP_GET, apiGetPlants);
+  s_app.web_server().on("/api/moisture", apiGetMoisture);
 
   {  // Add pump test json callback.
     AsyncCallbackJsonWebHandler* pumpTestHandler = new AsyncCallbackJsonWebHandler("/test/pump");
     pumpTestHandler->setMethod(HTTP_POST);
     pumpTestHandler->onRequest(
-        [](AsyncWebServerRequest* request, JsonVariant& json) { pumpTest(request, json); });
+        [](AsyncWebServerRequest* request, JsonVariant json) { pumpTest(request, json); });
     s_app.web_server().addHandler(pumpTestHandler);
+  }
+
+  for (int id = 1; id <= 1 /*static_cast<int>(s_plants.size())*/; id++) {
+    char path[80];
+    snprintf(path, sizeof(path), "/api/plants/%d", id);
+    AsyncCallbackJsonWebHandler* api_handler = new AsyncCallbackJsonWebHandler(path);
+    api_handler->setMethod(HTTP_PUT);
+    api_handler->onRequest([id](AsyncWebServerRequest* request, JsonVariant& json) {
+      putApiPlant(id, request, json);
+    });
+    s_app.web_server().addHandler(api_handler);
   }
 
   // Run the og3 application setup code.
