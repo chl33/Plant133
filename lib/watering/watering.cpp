@@ -440,47 +440,28 @@ void Watering::getApiPlants(JsonObject json) const {
 }
 
 namespace {
-String getStringVal(JsonObject json, const char* name,
-                    const std::function<void(const char* val)>& fn) {
-  const JsonVariant var = json[name];
-  if (var.isNull()) {
-    return String(name) + " not found";
-  }
-  if (!var.is<const char*>()) {
-    return String(name) + " is not a string";
-  }
-  fn(var.as<const char*>());
-  return "";
-}
 template <typename T>
-String getVal(JsonObject json, const char* name, const std::function<void(const T& val)>& fn) {
+bool getVal(JsonObject json, const char* name, const std::function<void(const T& val)>& fn) {
   const JsonVariant var = json[name];
-  if (var.isNull()) {
-    return String(name) + " not found";
-  }
   if (!var.is<T>()) {
-    return String(name) + " is not the expected type";
+    return false;
   }
   fn(var.as<T>());
-  return "";
+  return true;
 }
 }  // namespace
 
-String Watering::putApiPlants(JsonObject json) {
-  String ret;
-  if (json["name"].isNull()) {
-    return "name not found!!";
+bool Watering::putApiPlants(JsonObject json) {
+  const bool res =
+      getVal<const char*>(json, "name", [this](const char* name) { m_plant_name = name; }) &&
+      getVal<int>(json, "minMoisture", [this](const int& val) { m_min_moisture_target = val; }) &&
+      getVal<int>(json, "maxMoisture", [this](const int& val) { m_max_moisture_target = val; }) &&
+      getVal<int>(json, "adc0", [this](const int& val) { m_moisture.adc().set_in_min(val); }) &&
+      getVal<int>(json, "adc100", [this](const int& val) { m_moisture.adc().set_in_max(val); });
+  if (res && m_config) {
+    m_config->write_config(m_cfg_vg);
   }
-  ret = getStringVal(json, "name", [this](const char* name) { m_plant_name = name; });
-  if (ret != "") return ret;
-  ret = getVal<int>(json, "minMoisture", [this](const int& val) { m_min_moisture_target = val; });
-  if (ret != "") return ret;
-  ret = getVal<int>(json, "maxMoisture", [this](const int& val) { m_max_moisture_target = val; });
-  if (ret != "") return ret;
-  ret = getVal<int>(json, "adc0", [this](const int& val) { m_moisture.adc().set_in_min(val); });
-  if (ret != "") return ret;
-  ret = getVal<int>(json, "adc100", [this](const int& val) { m_moisture.adc().set_in_max(val); });
-  return getVal<bool>(json, "enabled", [this](const bool& val) { m_watering_enabled = val; });
+  return true;
 }
 
 }  // namespace og3

@@ -98,7 +98,7 @@ class Watering : public Module {
   void loop();
 
   void getApiPlants(JsonObject json) const;
-  String putApiPlants(JsonObject json);
+  bool putApiPlants(JsonObject json);
 
  protected:
   // This method performs the work of the state machine.

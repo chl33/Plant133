@@ -266,13 +266,8 @@ void putApiPlant(int id, AsyncWebServerRequest* request, JsonVariant& jsonIn) {
     return;
   }
   JsonObject obj = jsonIn.as<JsonObject>();
-  String res = s_plants[id - 1].putApiPlants(obj);
-  if (res != "") {
-    res += " " + String(obj.size());
-    for (auto iter : obj) {
-      res += String(" ") + iter.key().c_str();
-    }
-    request->send(500, "text/plain", res);
+  if (!s_plants[id - 1].putApiPlants(obj)) {
+    request->send(500, "text/plain", "failed to update plant");
     return;
   }
   request->send(200, "text/plain", "ok");
@@ -365,7 +360,7 @@ void setup() {
     s_app.web_server().addHandler(pumpTestHandler);
   }
 
-  for (int id = 1; id <= 1 /*static_cast<int>(s_plants.size())*/; id++) {
+  for (int id = 1; id <= static_cast<int>(s_plants.size()); id++) {
     char path[80];
     snprintf(path, sizeof(path), "/api/plants/%d", id);
     AsyncCallbackJsonWebHandler* api_handler = new AsyncCallbackJsonWebHandler(path);
