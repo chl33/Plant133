@@ -37,47 +37,35 @@
   <h2 class="page-title">System Overview</h2>
 
   <!-- System Status Cards -->
-  <div class="system-status-grid">
-    <div class="stat-card">
-      <div class="stat-icon temp">
-        <Thermometer size={24} />
-      </div>
-      <div class="stat-content">
-        <div class="stat-label">Temperature</div>
-        <div class="stat-value">{status.temperature.toFixed(1)}°C</div>
-      </div>
+  <div class="system-status-bar">
+    <div class="stat-compact">
+      <span class="stat-icon-inline temp-color">
+        <Thermometer size={18} />
+      </span>
+      <span class="stat-text">{status.temperature.toFixed(1)}°C</span>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-icon humidity">
-        <Wind size={24} />
-      </div>
-      <div class="stat-content">
-        <div class="stat-label">Humidity</div>
-        <div class="stat-value">{status.humidity.toFixed(1)}%</div>
-      </div>
+    <div class="stat-compact">
+      <span class="stat-icon-inline humidity-color">
+        <Wind size={18} />
+      </span>
+      <span class="stat-text">{status.humidity.toFixed(1)}%</span>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-icon" class:water-ok={status.waterLevel} class:water-low={!status.waterLevel}>
-        <Droplets size={24} />
-      </div>
-      <div class="stat-content">
-        <div class="stat-label">Water Reservoir</div>
-        <div class="stat-value" class:status-ok={status.waterLevel} class:status-warning={!status.waterLevel}>
-          {status.waterLevel ? 'OK' : 'Low'}
-        </div>
-      </div>
+    <div class="stat-compact">
+      <span class="stat-icon-inline" class:water-ok-color={status.waterLevel} class:water-low-color={!status.waterLevel}>
+        <Droplets size={18} />
+      </span>
+      <span class="stat-text" class:status-ok={status.waterLevel} class:status-warning={!status.waterLevel}>
+        {status.waterLevel ? 'Water OK' : 'Water Low'}
+      </span>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-icon pump">
-        <Droplet size={24} />
-      </div>
-      <div class="stat-content">
-        <div class="stat-label">Pump Time Left</div>
-        <div class="stat-value">{formatTime(status.pumpTimeRemaining)}</div>
-      </div>
+    <div class="stat-compact">
+      <span class="stat-icon-inline pump-color">
+        <Droplet size={18} />
+      </span>
+      <span class="stat-text">Pump: {formatTime(status.pumpTimeRemaining)}</span>
     </div>
   </div>
 
@@ -251,82 +239,58 @@
     color: #6d28d9;
   }
 
-  .system-status-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-
-  .stat-card {
+  .system-status-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding: 1rem;
     background: white;
-    padding: 1.25rem;
     border-radius: 0.5rem;
     border: 1px solid #e5e7eb;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    margin-bottom: 1.5rem;
   }
 
-  .stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 0.5rem;
+  .stat-compact {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .stat-icon-inline {
     flex-shrink: 0;
   }
 
-  .stat-icon.temp {
-    background: #fee2e2;
+  .stat-icon-inline.temp-color {
     color: #dc2626;
   }
 
-  .stat-icon.humidity {
-    background: #dbeafe;
+  .stat-icon-inline.humidity-color {
     color: #2563eb;
   }
 
-  .stat-icon.water-ok {
-    background: #d1fae5;
+  .stat-icon-inline.water-ok-color {
     color: #059669;
   }
 
-  .stat-icon.water-low {
-    background: #fef3c7;
+  .stat-icon-inline.water-low-color {
     color: #f59e0b;
   }
 
-  .stat-icon.pump {
-    background: #e0e7ff;
+  .stat-icon-inline.pump-color {
     color: #6366f1;
   }
 
-  .stat-content {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .stat-label {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-bottom: 0.25rem;
-    text-transform: uppercase;
+  .stat-text {
+    font-size: 0.875rem;
     font-weight: 600;
-  }
-
-  .stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
     color: #1f2937;
   }
 
-  .stat-value.status-ok {
+  .stat-text.status-ok {
     color: #059669;
   }
 
-  .stat-value.status-warning {
+  .stat-text.status-warning {
     color: #f59e0b;
   }
 </style>
