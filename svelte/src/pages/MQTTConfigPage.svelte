@@ -57,8 +57,8 @@
         type="text"
         class="form-input"
         placeholder="mqtt.example.com or 192.168.1.100"
-        bind:value={mqttConfig.broker}
-        on:change={() => updateMqtt('broker', mqttConfig.broker)}
+        bind:value={mqttConfig.host}
+        on:change={() => updateMqtt('host', mqttConfig.host)}
       />
     </div>
 
@@ -78,8 +78,8 @@
         type="text"
         class="form-input"
         placeholder="Leave blank if not required"
-        bind:value={mqttConfig.username}
-        on:change={() => updateMqtt('username', mqttConfig.username)}
+        bind:value={mqttConfig.user}
+        on:change={() => updateMqtt('user', mqttConfig.user)}
       />
     </div>
 

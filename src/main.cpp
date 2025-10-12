@@ -360,6 +360,32 @@ void putWifiConfig(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
   request->send(200, "text/plain", "ok");
 }
 
+void apiGetMqtt(AsyncWebServerRequest* request) {
+  JsonDocument jsondoc;
+  JsonObject json = jsondoc.to<JsonObject>();
+
+  const auto& mqtt = s_app.mqtt_manager();
+
+  json["host"] = mqtt.host();
+  json["password"] = mqtt.auth_password();
+  json["user"] = mqtt.auth_user();
+  serializeJson(jsondoc, s_body);
+  request->send(200, "application/json", s_body);
+}
+
+// Return current system status as JSON for AJAX status calls.
+void putMqttConfig(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
+  if (!jsonIn.is<JsonObject>()) {
+    request->send(500, "text/plain", "not a json object");
+    return;
+  }
+  JsonObject obj = jsonIn.as<JsonObject>();
+  if (s_app.mqtt_manager().variables().updateFromJson(obj) == 0) {
+    request->send(500, "text/plain", "no values updated");
+  }
+  request->send(200, "text/plain", "ok");
+}
+
 }  // namespace
 
 // This function is called once when code is started.
@@ -377,6 +403,7 @@ void setup() {
   initSvelteStaticFiles(&s_app.web_server());
   s_app.web_server().on("/api/plants", HTTP_GET, apiGetPlants);
   s_app.web_server().on("/api/wifi", HTTP_GET, apiGetWifi);
+  s_app.web_server().on("/api/mqtt", HTTP_GET, apiGetMqtt);
   s_app.web_server().on("/api/moisture", apiGetMoisture);
 
   {  // Add pump test json callback.
@@ -403,6 +430,13 @@ void setup() {
     handler->setMethod(HTTP_PUT);
     handler->onRequest(
         [](AsyncWebServerRequest* request, JsonVariant json) { putWifiConfig(request, json); });
+    s_app.web_server().addHandler(handler);
+  }
+  {  // Add Mqtt callback
+    AsyncCallbackJsonWebHandler* handler = new AsyncCallbackJsonWebHandler("/api/mqtt");
+    handler->setMethod(HTTP_PUT);
+    handler->onRequest(
+        [](AsyncWebServerRequest* request, JsonVariant json) { putMqttConfig(request, json); });
     s_app.web_server().addHandler(handler);
   }
 

@@ -17,6 +17,8 @@
   
   // Determine color based on value relative to min/max
   $: color = getColor(value, min, max);
+
+  $: roundedValue = value.toFixed(1);
   
   function getColor(val, minimum, maximum) {
     if (val < minimum) return '#ef4444'; // red - too dry
@@ -75,7 +77,7 @@
       class="gauge-text"
       class:large-text={size === 'large'}
     >
-      {value}%
+      {roundedValue}%
     </text>
   </svg>
   

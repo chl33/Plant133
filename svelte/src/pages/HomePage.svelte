@@ -68,7 +68,7 @@
         <Radio size={24} />
         <h3>MQTT Status</h3>
       </div>
-      <p>{mqttConfig.broker || 'Not configured'}</p>
+      <p>{mqttConfig.host || 'Not configured'}</p>
       <button class="link-btn" on:click={() => navigate('mqtt')}>
         Configure MQTT →
       </button>
