@@ -1,11 +1,14 @@
 <script>
   import { Droplet } from 'lucide-svelte';
+
+  export let wifi;
+  $: wifiConfig = $wifi;
 </script>
 
 <nav class="navbar">
   <div class="navbar-content">
     <Droplet size={32} />
-    <h1>Plant133</h1>
+    <h1>Plant133 {wifiConfig ? wifiConfig.board : ''}</h1>
   </div>
 </nav>
 
