@@ -133,6 +133,13 @@
     margin-bottom: 1.5rem;
   }
 
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+  }
+
   .card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -140,11 +147,24 @@
     margin-bottom: 1rem;
   }
 
+  @media (max-width: 768px) {
+    .card-grid {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+  }
+
   .overview-card {
     background: white;
     padding: 1.5rem;
     border-radius: 0.5rem;
     border: 1px solid #e5e7eb;
+  }
+
+  @media (max-width: 768px) {
+    .overview-card {
+      padding: 1rem;
+    }
   }
 
   .card-header {
@@ -160,6 +180,12 @@
     flex: 1;
   }
 
+  @media (max-width: 768px) {
+    .card-header h3 {
+      font-size: 1.125rem;
+    }
+  }
+
   .status-badge {
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
@@ -167,6 +193,13 @@
     font-weight: 600;
     background: #d1fae5;
     color: #065f46;
+  }
+
+  @media (max-width: 768px) {
+    .status-badge {
+      padding: 0.2rem 0.5rem;
+      font-size: 0.625rem;
+    }
   }
 
   .status-badge.disabled {
@@ -250,10 +283,26 @@
     margin-bottom: 1.5rem;
   }
 
+  @media (max-width: 768px) {
+    .system-status-bar {
+      gap: 0.75rem;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+    }
+  }
+
   .stat-compact {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .stat-compact {
+      gap: 0.375rem;
+      flex: 1 1 calc(50% - 0.375rem);
+      min-width: 0;
+    }
   }
 
   .stat-icon-inline {
@@ -284,6 +333,15 @@
     font-size: 0.875rem;
     font-weight: 600;
     color: #1f2937;
+  }
+
+  @media (max-width: 768px) {
+    .stat-text {
+      font-size: 0.75rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   .stat-text.status-ok {

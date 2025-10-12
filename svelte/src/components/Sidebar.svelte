@@ -63,6 +63,14 @@
     min-height: calc(100vh - 64px);
   }
 
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 100%;
+      min-height: auto;
+      padding: 0.5rem;
+    }
+  }
+
   .nav-button {
     width: 100%;
     display: flex;
@@ -77,6 +85,14 @@
     cursor: pointer;
     transition: background 0.2s;
     font-size: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .nav-button {
+      padding: 0.5rem;
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
   }
 
   .nav-button:hover {
@@ -95,5 +111,14 @@
     font-size: 0.75rem;
     color: #9ca3af;
     font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .nav-section {
+      margin-top: 0.75rem;
+      margin-bottom: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.625rem;
+    }
   }
 </style>

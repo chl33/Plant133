@@ -32,5 +32,11 @@
     font-size: 1.5rem;
     font-weight: 700;
   }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 1.125rem;
+    }
+  }
 </style>
 

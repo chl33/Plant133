@@ -182,6 +182,8 @@
   :global(body) {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: #f3f4f6;
+    margin: 0;
+    padding: 0;
   }
 
   .app-container {
@@ -195,9 +197,21 @@
     flex: 1;
   }
 
+  @media (max-width: 768px) {
+    .main-layout {
+      flex-direction: column;
+    }
+  }
+
   .content {
     flex: 1;
     padding: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .content {
+      padding: 1rem;
+    }
   }
 
   .content-inner {
