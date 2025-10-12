@@ -255,6 +255,17 @@ void apiGetMoisture(AsyncWebServerRequest* request) {
   request->send(200, "application/json", s_body);
 }
 
+void apiGetStatus(AsyncWebServerRequest* request) {
+  JsonDocument jsondoc;
+  JsonObject json = jsondoc.to<JsonObject>();
+  json["temperature"] = s_shtc3.temperature();
+  json["humidity"] = s_shtc3.humidity();
+  json["waterLevel"] = s_reservoir.haveWater();
+  json["pumpTimeRemaining"] = s_reservoir.secondsRemaining();
+  serializeJson(jsondoc, s_body);
+  request->send(200, "application/json", s_body);
+}
+
 // Return current system status as JSON for AJAX status calls.
 void putApiPlant(int id, AsyncWebServerRequest* request, JsonVariant& jsonIn) {
   if (id < 1 || id > static_cast<int>(s_plants.size())) {
@@ -405,6 +416,7 @@ void setup() {
   s_app.web_server().on("/api/wifi", HTTP_GET, apiGetWifi);
   s_app.web_server().on("/api/mqtt", HTTP_GET, apiGetMqtt);
   s_app.web_server().on("/api/moisture", apiGetMoisture);
+  s_app.web_server().on("/api/status", apiGetStatus);
 
   {  // Add pump test json callback.
     AsyncCallbackJsonWebHandler* pumpTestHandler = new AsyncCallbackJsonWebHandler("/test/pump");

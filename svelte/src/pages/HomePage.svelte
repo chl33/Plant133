@@ -1,11 +1,12 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { Droplet, Wifi, Radio } from 'lucide-svelte';
+  import { Droplet, Wifi, Radio, Thermometer, Wind, Droplets } from 'lucide-svelte';
   import MoistureGauge from '../components/MoistureGauge.svelte';
 
   export let plants;
   export let wifi;
   export let mqtt;
+  export let systemStatus;
 
   const dispatch = createEventDispatcher();
 
@@ -19,13 +20,68 @@
     return 'good';
   }
 
+  function formatTime(seconds) {
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}m ${secs}s`;
+  }
+
   $: plantsList = $plants;
   $: wifiConfig = $wifi;
   $: mqttConfig = $mqtt;
+  $: status = $systemStatus;
 </script>
 
 <div class="page">
   <h2 class="page-title">System Overview</h2>
+
+  <!-- System Status Cards -->
+  <div class="system-status-grid">
+    <div class="stat-card">
+      <div class="stat-icon temp">
+        <Thermometer size={24} />
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Temperature</div>
+        <div class="stat-value">{status.temperature.toFixed(1)}°C</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon humidity">
+        <Wind size={24} />
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Humidity</div>
+        <div class="stat-value">{status.humidity.toFixed(1)}%</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" class:water-ok={status.waterLevel} class:water-low={!status.waterLevel}>
+        <Droplets size={24} />
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Water Reservoir</div>
+        <div class="stat-value" class:status-ok={status.waterLevel} class:status-warning={!status.waterLevel}>
+          {status.waterLevel ? 'OK' : 'Low'}
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon pump">
+        <Droplet size={24} />
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Pump Time Left</div>
+        <div class="stat-value">{formatTime(status.pumpTimeRemaining)}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plant Status Cards -->
 
   <div class="card-grid">
     {#each plantsList as plant}
@@ -43,6 +99,11 @@
             min={plant.minMoisture}
             max={plant.maxMoisture}
           />
+        </div>
+        <div class="card-content">
+          <p>Current Moisture: <strong>{plant.currentMoisture}%</strong></p>
+          <p>Target Range: {plant.minMoisture}% - {plant.maxMoisture}%</p>
+          <p>ADC Calibration: {plant.adc0} (0%) to {plant.adc100} (100%)</p>
         </div>
         <button class="link-btn" on:click={() => navigate(`plant${plant.id}`)}>
           Configure →
@@ -188,5 +249,84 @@
 
   .status-card.purple .link-btn:hover {
     color: #6d28d9;
+  }
+
+  .system-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .stat-icon.temp {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  .stat-icon.humidity {
+    background: #dbeafe;
+    color: #2563eb;
+  }
+
+  .stat-icon.water-ok {
+    background: #d1fae5;
+    color: #059669;
+  }
+
+  .stat-icon.water-low {
+    background: #fef3c7;
+    color: #f59e0b;
+  }
+
+  .stat-icon.pump {
+    background: #e0e7ff;
+    color: #6366f1;
+  }
+
+  .stat-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .stat-value.status-ok {
+    color: #059669;
+  }
+
+  .stat-value.status-warning {
+    color: #f59e0b;
   }
 </style>

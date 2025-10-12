@@ -15,8 +15,8 @@
 </script>
 
 <aside class="sidebar">
-  <button 
-    class="nav-button" 
+  <button
+    class="nav-button"
     class:active={currentPage === 'home'}
     on:click={() => navigate('home')}>
     <Home size={20} />
@@ -26,8 +26,8 @@
   <div class="nav-section">Plant Configuration</div>
 
   {#each plantsList as plant}
-    <button 
-      class="nav-button" 
+    <button
+      class="nav-button"
       class:active={currentPage === `plant${plant.id}`}
       on:click={() => navigate(`plant${plant.id}`)}>
       <Droplet size={20} />
@@ -37,16 +37,16 @@
 
   <div class="nav-section">System Settings</div>
 
-  <button 
-    class="nav-button" 
+  <button
+    class="nav-button"
     class:active={currentPage === 'wifi'}
     on:click={() => navigate('wifi')}>
     <Wifi size={20} />
     <span>WiFi Setup</span>
   </button>
 
-  <button 
-    class="nav-button" 
+  <button
+    class="nav-button"
     class:active={currentPage === 'mqtt'}
     on:click={() => navigate('mqtt')}>
     <Radio size={20} />
@@ -97,4 +97,3 @@
     font-weight: 600;
   }
 </style>
-

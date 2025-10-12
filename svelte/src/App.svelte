@@ -30,6 +30,13 @@
     password: '',
   });
 
+  export let systemStatus = writable({
+    temperature: 0,
+    humidity: 0,
+    waterLevel: false,
+    pumpTimeRemaining: 0
+  });
+
   // Load plant configurations from server
   async function loadPlantConfigs() {
     try {
@@ -95,6 +102,18 @@
     }
   }
 
+  // Load system status (temperature, humidity, water level, pump time)
+  async function loadSystemStatus() {
+    try {
+      const response = await fetch(`${API_BASE}/status`);
+      if (!response.ok) throw new Error('Failed to load system status');
+      const data = await response.json();
+      systemStatus.set(data);
+    } catch (err) {
+      console.error('Error loading system status:', err);
+    }
+  }
+
   // Initialize data on mount
   onMount(async () => {
     loading = true;
@@ -102,15 +121,19 @@
       loadPlantConfigs(),
       loadMoistureLevels(),
       loadWiFiConfig(),
-      loadMQTTConfig()
+      loadMQTTConfig(),
+      loadSystemStatus()
     ]);
     loading = false;
 
-    // Poll moisture levels every 5 seconds
-    const moistureInterval = setInterval(loadMoistureLevels, 5000);
+    // Poll moisture levels and system status every 10 seconds
+    const updateInterval = setInterval(() => {
+      loadMoistureLevels();
+      loadSystemStatus();
+    }, 10000);
 
     // Cleanup interval on component destroy
-    return () => clearInterval(moistureInterval);
+    return () => clearInterval(updateInterval);
   });
 
   function changePage(page) {
@@ -136,7 +159,7 @@
     <main class="content">
       <div class="content-inner">
         {#if currentPage === 'home'}
-          <HomePage {plants} {wifi} {mqtt} on:changePage={(e) => changePage(e.detail)} />
+          <HomePage {plants} {wifi} {mqtt} {systemStatus} on:changePage={(e) => changePage(e.detail)} />
         {:else if currentPage === 'wifi'}
           <WiFiConfigPage {wifi} />
         {:else if currentPage === 'mqtt'}
