@@ -437,6 +437,11 @@ void Watering::getApiPlants(JsonObject json) const {
   json["adc100"] = m_moisture.adc().in_max();
   json["enabled"] = isEnabled();
   json["currentMoisture"] = moisturePercent();
+  json["pumpOnTime"] = m_pump_dose_msec.value();
+  json["secsBetweenDoses"] = m_between_doses_sec.value();
+  json["maxDosesPerCycle"] = m_dose_log.maxDoesPerCycle();
+  json["doseCount"] = m_dose_log.dose_count();
+  json["state"] = m_state.string();
 }
 
 namespace {
@@ -457,7 +462,12 @@ bool Watering::putApiPlants(JsonObject json) {
       getVal<int>(json, "minMoisture", [this](const int& val) { m_min_moisture_target = val; }) &&
       getVal<int>(json, "maxMoisture", [this](const int& val) { m_max_moisture_target = val; }) &&
       getVal<int>(json, "adc0", [this](const int& val) { m_moisture.adc().set_in_min(val); }) &&
-      getVal<int>(json, "adc100", [this](const int& val) { m_moisture.adc().set_in_max(val); });
+      getVal<int>(json, "adc100", [this](const int& val) { m_moisture.adc().set_in_max(val); }) &&
+      getVal<int>(json, "pumpOnTime", [this](const int& val) { m_pump_dose_msec = val; }) &&
+      getVal<int>(json, "secsBetweenDoses",
+                  [this](const int& val) { m_between_doses_sec = val; }) &&
+      getVal<int>(json, "maxDosesPerCycle",
+                  [this](const int& val) { m_dose_log.setMaxDoesPerCycle(val); });
   if (res && m_config) {
     m_config->write_config(m_cfg_vg);
   }

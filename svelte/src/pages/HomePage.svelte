@@ -57,7 +57,7 @@
         <Droplets size={18} />
       </span>
       <span class="stat-text" class:status-ok={status.waterLevel} class:status-warning={!status.waterLevel}>
-        {status.waterLevel ? 'Water OK' : 'Water Low'}
+        {status.waterLevel ? 'Reservoir OK' : 'Reservoir Low'}
       </span>
     </div>
 
@@ -89,9 +89,9 @@
           />
         </div>
         <div class="card-content">
-          <p>Current Moisture: <strong>{plant.currentMoisture}%</strong></p>
+          <p>State: {plant.state}</p>
           <p>Target Range: {plant.minMoisture}% - {plant.maxMoisture}%</p>
-          <p>ADC Calibration: {plant.adc0} (0%) to {plant.adc100} (100%)</p>
+          <p>Doses: {plant.doseCount} / {plant.maxDosesPerCycle}</p>
         </div>
         <button class="link-btn" on:click={() => navigate(`plant${plant.id}`)}>
           Configure →

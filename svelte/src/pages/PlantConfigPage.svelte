@@ -40,7 +40,10 @@
           maxMoisture: plant.maxMoisture,
           adc0: plant.adc0,
           adc100: plant.adc100,
-          enabled: plant.enabled
+          enabled: plant.enabled,
+	  pumpOnTime: plant.pumpOnTime,
+	  secsBetweenDoses: plant.secsBetweenDoses,
+	  maxDosesPerCycle: plant.maxDosesPerCycle
         })
       });
 
@@ -158,6 +161,51 @@
             on:change={() => updatePlant('adc100', plant.adc100)}
           />
           <div class="form-hint">ADC reading when sensor is in water</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider">
+      <h3 class="section-title">Pump configuration</h3>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Pump dose length (msec)</label>
+          <input
+            type="number"
+            class="form-input"
+            min="100"
+            max="5000"
+            bind:value={plant.pumpOnTime}
+            on:change={() => updatePlant('pumpOnTime', plant.pumpOnTime)}
+          />
+          <div class="form-hint">How the pump should run per dose.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Seconds between doses</label>
+          <input
+            type="number"
+            class="form-input"
+            min="10"
+            max="7200"
+            bind:value={plant.adc100}
+            on:change={() => updatePlant('secsBetweenDoses', plant.secsBetweenDoses)}
+          />
+          <div class="form-hint">Time to wait between pump doses</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Maximum doses per cycle</label>
+          <input
+            type="number"
+            class="form-input"
+            min="1"
+            max="10"
+            bind:value={plant.maxDosesPerCycle}
+            on:change={() => updatePlant('maxDosesPerCycle', plant.maxDosesPerCycle)}
+          />
+          <div class="form-hint">Maximum doses while watering and per day</div>
         </div>
       </div>
     </div>
