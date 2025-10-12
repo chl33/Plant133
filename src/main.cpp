@@ -334,6 +334,32 @@ void configJson(AsyncWebServerRequest* request) {
   request->send(200, "application/json", s_body);
 }
 
+void apiGetWifi(AsyncWebServerRequest* request) {
+  JsonDocument jsondoc;
+  JsonObject json = jsondoc.to<JsonObject>();
+
+  const auto& wifi = s_app.wifi_manager();
+
+  json["board"] = wifi.board();
+  json["password"] = wifi.password();
+  json["essid"] = wifi.essid();
+  serializeJson(jsondoc, s_body);
+  request->send(200, "application/json", s_body);
+}
+
+// Return current system status as JSON for AJAX status calls.
+void putWifiConfig(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
+  if (!jsonIn.is<JsonObject>()) {
+    request->send(500, "text/plain", "not a json object");
+    return;
+  }
+  JsonObject obj = jsonIn.as<JsonObject>();
+  if (s_app.wifi_manager().variables().updateFromJson(obj) == 0) {
+    request->send(500, "text/plain", "no values updated");
+  }
+  request->send(200, "text/plain", "ok");
+}
+
 }  // namespace
 
 // This function is called once when code is started.
@@ -350,6 +376,7 @@ void setup() {
   s_app.web_server().on("/root", handleWebRoot);
   initSvelteStaticFiles(&s_app.web_server());
   s_app.web_server().on("/api/plants", HTTP_GET, apiGetPlants);
+  s_app.web_server().on("/api/wifi", HTTP_GET, apiGetWifi);
   s_app.web_server().on("/api/moisture", apiGetMoisture);
 
   {  // Add pump test json callback.
@@ -369,6 +396,14 @@ void setup() {
       putApiPlant(id, request, json);
     });
     s_app.web_server().addHandler(api_handler);
+  }
+
+  {  // Add WiFi callback
+    AsyncCallbackJsonWebHandler* handler = new AsyncCallbackJsonWebHandler("/api/wifi");
+    handler->setMethod(HTTP_PUT);
+    handler->onRequest(
+        [](AsyncWebServerRequest* request, JsonVariant json) { putWifiConfig(request, json); });
+    s_app.web_server().addHandler(handler);
   }
 
   // Run the og3 application setup code.
