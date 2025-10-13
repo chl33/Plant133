@@ -467,7 +467,8 @@ bool Watering::putApiPlants(JsonObject json) {
       getVal<int>(json, "secsBetweenDoses",
                   [this](const int& val) { m_between_doses_sec = val; }) &&
       getVal<int>(json, "maxDosesPerCycle",
-                  [this](const int& val) { m_dose_log.setMaxDoesPerCycle(val); });
+                  [this](const int& val) { m_dose_log.setMaxDoesPerCycle(val); }) &&
+      getVal<bool>(json, "enabled", [this](const bool& val) { m_watering_enabled = val; });
   if (res && m_config) {
     m_config->write_config(m_cfg_vg);
   }

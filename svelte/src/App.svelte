@@ -49,10 +49,10 @@
       error = err.message;
       // Use default data if server unavailable
       plants.set([
-        { id: 1, name: 'Plant 1', minMoisture: 30, maxMoisture: 70, adc0: 2900, adc100: 1470, enabled: true, currentMoisture: 0, pumpOnTime: 3000, secsBetweenDoses: 900, maxDosesPerCycle: 5, state: 'disabled', doseCount: 0 },
-        { id: 2, name: 'Plant 2', minMoisture: 30, maxMoisture: 70, adc0: 2900, adc100: 1470, enabled: true, currentMoisture: 0, pumpOnTime: 3000, secsBetweenDoses: 900, maxDosesPerCycle: 5, state: 'disabled', doseCount: 0 },
-        { id: 3, name: 'Plant 3', minMoisture: 30, maxMoisture: 70, adc0: 2900, adc100: 1470, enabled: false, currentMoisture: 0, pumpOnTime: 3000, secsBetweenDoses: 900, maxDosesPerCycle: 5, state: 'disabled', doseCount: 0 },
-        { id: 4, name: 'Plant 4', minMoisture: 30, maxMoisture: 70, adc0: 2900, adc100: 1470, enabled: true, currentMoisture: 0, pumpOnTime: 3000, secsBetweenDoses: 900, maxDosesPerCycle: 5, state: 'disabled', doseCount: 0 }
+        { id: 1, name: 'Plant 1', minMoisture: 30, maxMoisture: 70, adc0: 2900, adc100: 1470, enabled: true, currentMoisture: 0, pumpOnTime: 3000, secsBetweenDoses: 900, maxDosesPerCycle: 5, state: 'disabled', doseCount: 0, rawMoisture: 0 },
+        { id: 2, name: 'Plant 2', minMoisture: 30, maxMoisture: 70, adc0: 2900, adc100: 1470, enabled: true, currentMoisture: 0, pumpOnTime: 3000, secsBetweenDoses: 900, maxDosesPerCycle: 5, state: 'disabled', doseCount: 0, rawMoisture: 0 },
+        { id: 3, name: 'Plant 3', minMoisture: 30, maxMoisture: 70, adc0: 2900, adc100: 1470, enabled: false, currentMoisture: 0, pumpOnTime: 3000, secsBetweenDoses: 900, maxDosesPerCycle: 5, state: 'disabled', doseCount: 0, rawMoisture: 0 },
+        { id: 4, name: 'Plant 4', minMoisture: 30, maxMoisture: 70, adc0: 2900, adc100: 1470, enabled: true, currentMoisture: 0, pumpOnTime: 3000, secsBetweenDoses: 900, maxDosesPerCycle: 5, state: 'disabled', doseCount: 0, rawMoisture: 0 }
       ]);
     }
   }
@@ -68,7 +68,8 @@
         return p.map(plant => {
           const moistureData = data.find(m => m.id === plant.id);
           if (moistureData) {
-            return { ...plant, currentMoisture: moistureData.moisture };
+            return { ...plant, currentMoisture: moistureData.moisture,
+	    	    rawMoisture: moistureData.rawMoisture };
           }
           return plant;
         });

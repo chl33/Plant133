@@ -13,3 +13,4 @@ secrets*.yaml
 /KiCAD/Plant1337-backups/
 /compile_commands.json
 /.cache/
+/lib/watering/svelteesp32async.h

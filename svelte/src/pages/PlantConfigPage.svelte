@@ -101,8 +101,10 @@
         />
       </div>
       <div class="status-text">
-        Current Moisture Level: <strong>{plant.currentMoisture}%</strong>
+        Current Moisture Level: <strong>{plant.currentMoisture.toFixed(1)}%</strong>
       </div>
+      <div class="status-text">State: {plant.state}</div>
+      <div class="status-text">ADC counts: {plant.rawMoisture}</div>
     </div>
 
     <div class="form-row">
@@ -189,7 +191,7 @@
             class="form-input"
             min="10"
             max="7200"
-            bind:value={plant.adc100}
+            bind:value={plant.secsBetweenDoses}
             on:change={() => updatePlant('secsBetweenDoses', plant.secsBetweenDoses)}
           />
           <div class="form-hint">Time to wait between pump doses</div>

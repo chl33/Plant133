@@ -24,6 +24,12 @@
 
 #define SW_VERSION "0.9.0"
 
+// TODO: Not yet supported by the svelte interface:
+//       - Add a pump-test button for each plant on configuration page.
+//       - MQTT config should indicate whether device is connected to the broker
+//       - Restart button. Maybe put in an app-status page.
+//       - Add version and device information. Maybe an about page.
+
 namespace {
 
 const char kManufacturer[] = "Chris Lee";
@@ -250,6 +256,7 @@ void apiGetMoisture(AsyncWebServerRequest* request) {
     id += 1;
     json["id"] = id;
     json["moisture"] = plant.moisturePercent();
+    json["rawMoisture"] = plant.rawMoisture();
   }
   serializeJson(jsondoc, s_body);
   request->send(200, "application/json", s_body);
@@ -368,6 +375,7 @@ void putWifiConfig(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
   if (s_app.wifi_manager().variables().updateFromJson(obj) == 0) {
     request->send(500, "text/plain", "no values updated");
   }
+  s_app.config().write_config(s_app.wifi_manager().variables());
   request->send(200, "text/plain", "ok");
 }
 
@@ -394,6 +402,7 @@ void putMqttConfig(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
   if (s_app.mqtt_manager().variables().updateFromJson(obj) == 0) {
     request->send(500, "text/plain", "no values updated");
   }
+  s_app.config().write_config(s_app.mqtt_manager().variables());
   request->send(200, "text/plain", "ok");
 }
 

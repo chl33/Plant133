@@ -74,6 +74,8 @@ class Watering : public Module {
 
   bool isEnabled() const { return m_watering_enabled.value(); }
   float moisturePercent() const { return m_moisture.filteredValue(); }
+  unsigned rawMoisture() const { return m_moisture.rawCounts(); }
+
   float maxTarget() const { return m_max_moisture_target.value(); }
   float minTarget() const { return m_min_moisture_target.value(); }
 
