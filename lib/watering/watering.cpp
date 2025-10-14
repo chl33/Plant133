@@ -387,6 +387,8 @@ void Watering::setState(State state, unsigned msec, const char* msg) {
                   s_state_names[state], msec / 1000, msec % 1000, msg);
   }
   m_state = state;
+  // If we don't update m_watering_enabled, kStateDisabled will only last until the next update().
+  m_watering_enabled = (m_state.value() != kStateDisabled);
   m_next_update_msec = millis() + static_cast<unsigned long>(msec);
 }
 
