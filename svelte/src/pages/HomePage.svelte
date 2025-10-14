@@ -89,9 +89,7 @@
           />
         </div>
         <div class="card-content">
-          <p>State: {plant.state}</p>
-          <p>Target Range: {plant.minMoisture}% - {plant.maxMoisture}%</p>
-          <p>Doses: {plant.doseCount} / {plant.maxDosesPerCycle}</p>
+          <p>{plant.state}. {plant.doseCount} / {plant.maxDosesPerCycle} doses</p>
         </div>
         <button class="link-btn" on:click={() => navigate(`plant${plant.id}`)}>
           Configure →

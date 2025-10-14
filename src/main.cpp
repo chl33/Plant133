@@ -24,11 +24,15 @@
 
 #define SW_VERSION "0.9.0"
 
-// TODO: Not yet supported by the svelte interface:
-//       - Add a pump-test button for each plant on configuration page.
-//       - MQTT config should indicate whether device is connected to the broker
-//       - Restart button. Maybe put in an app-status page.
-//       - Add version and device information. Maybe an about page.
+// TODO:
+//  Fixes to make to the svelte inteface:
+//    Maybe also replace "Config ->" with a Settings gear link at the top of the card.
+//  - Make sure dose number and watering state are updated in overview and plant-config pages.
+//  - Can we shrink or hide the cards for disabled plants in the overview?
+//  - MQTT config should indicate whether device is connected to the broker
+//  - Add a pump-test button for each plant on configuration page.
+//  - Restart button. Maybe put in an app-status page.
+//  - Add version and device information. Maybe an about page.
 
 namespace {
 
