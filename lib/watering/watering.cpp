@@ -442,7 +442,7 @@ void Watering::getApiPlants(JsonObject json) const {
   json["pumpOnTime"] = m_pump_dose_msec.value();
   json["secsBetweenDoses"] = m_between_doses_sec.value();
   json["maxDosesPerCycle"] = m_dose_log.maxDoesPerCycle();
-  json["doseCount"] = m_dose_log.dose_count();
+  json["doseCount"] = m_dose_log.doseCount();
   json["state"] = m_state.string();
 }
 

@@ -97,6 +97,8 @@ class Watering : public Module {
 
   Relay& relay() { return m_pump; }
 
+  const DoseLog& doseLog() const { return m_dose_log; }
+
   void loop();
 
   void getApiPlants(JsonObject json) const;

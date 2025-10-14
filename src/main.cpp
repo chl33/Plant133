@@ -26,8 +26,6 @@
 
 // TODO:
 //  Fixes to make to the svelte inteface:
-//    Maybe also replace "Config ->" with a Settings gear link at the top of the card.
-//  - Make sure dose number and watering state are updated in overview and plant-config pages.
 //  - Can we shrink or hide the cards for disabled plants in the overview?
 //  - MQTT config should indicate whether device is connected to the broker
 //  - Add a pump-test button for each plant on configuration page.
@@ -261,6 +259,8 @@ void apiGetMoisture(AsyncWebServerRequest* request) {
     json["id"] = id;
     json["moisture"] = plant.moisturePercent();
     json["rawMoisture"] = plant.rawMoisture();
+    json["doseCount"] = plant.doseLog().doseCount();
+    json["state"] = plant.stateName();
   }
   serializeJson(jsondoc, s_body);
   request->send(200, "application/json", s_body);

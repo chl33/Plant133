@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { Droplet, Wifi, Radio, Thermometer, Wind, Droplets } from 'lucide-svelte';
+  import { Droplet, Wifi, Radio, Thermometer, Wind, Droplets, Settings } from 'lucide-svelte';
   import MoistureGauge from '../components/MoistureGauge.svelte';
 
   export let plants;
@@ -80,6 +80,9 @@
           <div class="status-badge" class:disabled={!plant.enabled}>
             {plant.enabled ? 'Enabled' : 'Disabled'}
           </div>
+          <button class="link-btn" on:click={() => navigate(`plant${plant.id}`)}>
+	     <Settings size={24} style='transform: translateY(-0.5em);'/>
+	  </button>
         </div>
         <div class="gauge-container">
           <MoistureGauge
@@ -91,9 +94,6 @@
         <div class="card-content">
           <p>{plant.state}. {plant.doseCount} / {plant.maxDosesPerCycle} doses</p>
         </div>
-        <button class="link-btn" on:click={() => navigate(`plant${plant.id}`)}>
-          Configure →
-        </button>
       </div>
     {/each}
   </div>

@@ -69,7 +69,9 @@
           const moistureData = data.find(m => m.id === plant.id);
           if (moistureData) {
             return { ...plant, currentMoisture: moistureData.moisture,
-	    	    rawMoisture: moistureData.rawMoisture };
+	    	    rawMoisture: moistureData.rawMoisture,
+		    doseCount: moistureData.doseCount,
+		    state: moistureData.state};
           }
           return plant;
         });
