@@ -125,11 +125,6 @@
     </text>
   </svg>
 
-  <div class="gauge-labels">
-    <span class="label-left">0%</span>
-    <span class="label-right">100%</span>
-  </div>
-
   <div class="range-indicator">
     <span class="range-label">Target: {min}%-{max}%</span>
   </div>
