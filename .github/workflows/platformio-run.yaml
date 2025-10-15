@@ -23,5 +23,14 @@ jobs:
       - name: Setup secrets for build
         run: cp secrets.ini.example secrets.ini && cp secrets-usb.ini.example secrets-usb.ini
 
+      - name: Install svelteesp32
+        run: npm install -D svelteesp32
+
+      - name: Build svelte app
+        run: npm run build
+
+      - name: Package svelta app
+        run: npx svelteesp32 -e async -s dist -o ../lib/watering/svelteesp32async.h --etag=true
+
       - name: Build PlatformIO Project
         run: pio run
