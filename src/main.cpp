@@ -27,10 +27,8 @@
 // TODO:
 //  Fixes to make to the svelte inteface:
 //  - Can we shrink or hide the cards for disabled plants in the overview?
-//  - MQTT config should indicate whether device is connected to the broker
 //  - Add a pump-test button for each plant on configuration page.
 //  - Restart button. Maybe put in an app-status page.
-//  - Add version and device information. Maybe an about page.
 
 namespace {
 
@@ -273,6 +271,13 @@ void apiGetStatus(AsyncWebServerRequest* request) {
   json["humidity"] = s_shtc3.humidity();
   json["waterLevel"] = s_reservoir.haveWater();
   json["pumpTimeRemaining"] = s_reservoir.secondsRemaining();
+  json["mqttConnected"] = s_app.mqtt_manager().isConnected();
+  json["software"] = SW_VERSION;
+#if BOARD_V13
+  json["hardware"] = "1.3";
+#else
+  json["hardware"] = "1.2";
+#endif
   serializeJson(jsondoc, s_body);
   request->send(200, "application/json", s_body);
 }

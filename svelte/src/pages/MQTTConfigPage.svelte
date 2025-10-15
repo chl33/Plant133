@@ -5,12 +5,15 @@
   const API_BASE = '/api';
 
   export let mqtt;
+  export let systemStatus;
 
   let mqttConfig;
+  let sysStat;
   let saving = false;
   let saveMessage = '';
 
   $: mqttConfig = $mqtt;
+  $: status = $systemStatus;
 
   function updateMqtt(field, value) {
     mqtt.update(m => {
@@ -51,6 +54,9 @@
   <h2 class="page-title">MQTT Configuration</h2>
 
   <div class="card">
+    <div class="status-badge" class:disabled={status && !status.mqttConnected}>
+      {status && status.mqttConnected ? 'Connected' : 'Not connected'}
+    </div>
     <div class="form-group">
       <label class="form-label">MQTT Broker Address</label>
       <input
@@ -192,6 +198,19 @@
   }
 
   .save-message.error {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #d1fae5;
+    color: #065f46;
+  }
+  .status-badge.disabled {
     background: #fee2e2;
     color: #991b1b;
   }

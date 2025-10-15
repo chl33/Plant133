@@ -34,7 +34,10 @@
     temperature: 0,
     humidity: 0,
     waterLevel: false,
-    pumpTimeRemaining: 0
+    pumpTimeRemaining: 0,
+    mqttConnected: false,
+    software: '',
+    hardware: ''
   });
 
   // Load plant configurations from server
@@ -158,7 +161,7 @@
     </div>
   {/if}
   <div class="main-layout" class:hidden={loading}>
-    <Sidebar {currentPage} {plants} on:changePage={(e) => changePage(e.detail)} />
+    <Sidebar {currentPage} {plants} {systemStatus} on:changePage={(e) => changePage(e.detail)} />
     <main class="content">
       <div class="content-inner">
         {#if currentPage === 'home'}
@@ -166,7 +169,7 @@
         {:else if currentPage === 'wifi'}
           <WiFiConfigPage {wifi} />
         {:else if currentPage === 'mqtt'}
-          <MQTTConfigPage {mqtt} />
+          <MQTTConfigPage {mqtt} {systemStatus} />
         {:else if currentPage.startsWith('plant')}
           <PlantConfigPage plantId={parseInt(currentPage.replace('plant', ''))} {plants} />
         {/if}

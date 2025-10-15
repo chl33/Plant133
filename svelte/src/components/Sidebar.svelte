@@ -4,6 +4,7 @@
 
   export let currentPage;
   export let plants;
+  export let systemStatus;
 
   const dispatch = createEventDispatcher();
 
@@ -12,6 +13,7 @@
   }
 
   $: plantsList = $plants;
+  $: status = $systemStatus;
 </script>
 
 <aside class="sidebar">
@@ -52,6 +54,13 @@
     <Radio size={20} />
     <span>MQTT Setup</span>
   </button>
+
+  <div class="nav-section">Device</div>
+
+  <div>
+  <p>Software: v{status.software}</p>
+  <p>Hardware: board v{status.hardware}</p>
+  </div>
 </aside>
 
 <style>
