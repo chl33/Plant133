@@ -24,7 +24,10 @@ jobs:
         run: cp secrets.ini.example secrets.ini && cp secrets-usb.ini.example secrets-usb.ini
 
       - name: Install svelteesp32
-        run: npm install -D svelteesp32
+        run: npm install -D svelteesp32 build
+
+      - name: Install svelteesp32
+        run: npm install
 
       - name: Build svelte app
         run: npm run build
