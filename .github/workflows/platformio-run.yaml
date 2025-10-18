@@ -24,13 +24,10 @@ jobs:
         run: cp secrets.ini.example secrets.ini && cp secrets-usb.ini.example secrets-usb.ini
 
       - name: Install svelteesp32
-        run: npm install -D svelteesp32 build
-
-      - name: Install svelteesp32
-        run: npm install
+        run: cd svelte && npm install -D svelteesp32 build
 
       - name: Build svelte app
-        run: npm run build
+        run: cd svelte && npm run build
 
       - name: Package svelta app
         run: npx svelteesp32 -e async -s dist -o ../lib/watering/svelteesp32async.h --etag=true
