@@ -30,7 +30,7 @@ jobs:
         run: cd svelte && npm run build
 
       - name: Package svelta app
-        run: npx svelteesp32 -e async -s dist -o ../lib/watering/svelteesp32async.h --etag=true
+        run: cd svelte && npx svelteesp32 -e async -s dist -o ../lib/watering/svelteesp32async.h --etag=true
 
       - name: Build PlatformIO Project
         run: pio run
