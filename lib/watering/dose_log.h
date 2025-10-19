@@ -24,7 +24,7 @@ class DoseLog {
           Watering* watering);
 
   // Return the total number of doses in the last 24 hours.
-  unsigned dose_count() const { return m_dose_count.value(); }
+  unsigned doseCount() const { return m_dose_count.value(); }
 
   // When the pump has run m_max_doses in either a watering cycle or
   //  a 24 hour period is reached, pause watering for 12 hours.
@@ -39,6 +39,9 @@ class DoseLog {
 
   // This registers callbacks for Home Assistant MQTT auto-discovery of variables.
   void addHADiscovery(class HADiscovery* had);
+
+  unsigned maxDoesPerCycle() const { return m_max_doses_per_cycle.value(); }
+  void setMaxDoesPerCycle(unsigned val) { m_max_doses_per_cycle = val; }
 
  private:
   Logger* log() { return m_module_system->log(); }

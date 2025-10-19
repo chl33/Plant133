@@ -11,6 +11,7 @@
 
 #include <algorithm>
 
+#include "ArduinoJson/Variant/JsonVariant.hpp"
 #include "watering_constants.h"
 
 namespace og3 {
@@ -386,6 +387,8 @@ void Watering::setState(State state, unsigned msec, const char* msg) {
                   s_state_names[state], msec / 1000, msec % 1000, msg);
   }
   m_state = state;
+  // If we don't update m_watering_enabled, kStateDisabled will only last until the next update().
+  m_watering_enabled = (m_state.value() != kStateDisabled);
   m_next_update_msec = millis() + static_cast<unsigned long>(msec);
 }
 
@@ -411,7 +414,7 @@ void Watering::handleStatusRequest(AsyncWebServerRequest* request) {
   html::writeTableInto(&m_html, variables());
   add_html_button(&m_html, "Configure", configUrl());
   add_html_button(&m_html, "Test pump", pumpTestUrl());
-  m_html += F(HTML_BUTTON("/", "Back"));
+  m_html += HTML_BUTTON("/", "Back");
   sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
 #endif
 }
@@ -426,6 +429,52 @@ void Watering::handleConfigRequest(AsyncWebServerRequest* request) {
     m_config->write_config(m_cfg_vg);
   }
 #endif
+}
+
+void Watering::getApiPlants(JsonObject json) const {
+  json["name"] = plantName();
+  json["minMoisture"] = minTarget();
+  json["maxMoisture"] = maxTarget();
+  json["adc0"] = m_moisture.adc().in_min();
+  json["adc100"] = m_moisture.adc().in_max();
+  json["enabled"] = isEnabled();
+  json["currentMoisture"] = moisturePercent();
+  json["pumpOnTime"] = m_pump_dose_msec.value();
+  json["secsBetweenDoses"] = m_between_doses_sec.value();
+  json["maxDosesPerCycle"] = m_dose_log.maxDoesPerCycle();
+  json["doseCount"] = m_dose_log.doseCount();
+  json["state"] = m_state.string();
+}
+
+namespace {
+template <typename T>
+bool getVal(JsonObject json, const char* name, const std::function<void(const T& val)>& fn) {
+  const JsonVariant var = json[name];
+  if (!var.is<T>()) {
+    return false;
+  }
+  fn(var.as<T>());
+  return true;
+}
+}  // namespace
+
+bool Watering::putApiPlants(JsonObject json) {
+  const bool res =
+      getVal<const char*>(json, "name", [this](const char* name) { m_plant_name = name; }) &&
+      getVal<int>(json, "minMoisture", [this](const int& val) { m_min_moisture_target = val; }) &&
+      getVal<int>(json, "maxMoisture", [this](const int& val) { m_max_moisture_target = val; }) &&
+      getVal<int>(json, "adc0", [this](const int& val) { m_moisture.adc().set_in_min(val); }) &&
+      getVal<int>(json, "adc100", [this](const int& val) { m_moisture.adc().set_in_max(val); }) &&
+      getVal<int>(json, "pumpOnTime", [this](const int& val) { m_pump_dose_msec = val; }) &&
+      getVal<int>(json, "secsBetweenDoses",
+                  [this](const int& val) { m_between_doses_sec = val; }) &&
+      getVal<int>(json, "maxDosesPerCycle",
+                  [this](const int& val) { m_dose_log.setMaxDoesPerCycle(val); }) &&
+      getVal<bool>(json, "enabled", [this](const bool& val) { m_watering_enabled = val; });
+  if (res && m_config) {
+    m_config->write_config(m_cfg_vg);
+  }
+  return true;
 }
 
 }  // namespace og3

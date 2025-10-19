@@ -21,6 +21,7 @@ class ReservoirCheck : public Module {
   bool haveWater() const { return floatIsFloating() || secondsRemaining() > 0.0f; }
   void pumpRanForMsec(float secs);
   const VariableGroup& variables() const { return m_vg; }
+  const VariableGroup& configVariables() const { return m_cfg_vg; }
 
   static const char kName[];
   static const char kConfigUrl[];

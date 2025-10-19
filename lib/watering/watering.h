@@ -74,6 +74,8 @@ class Watering : public Module {
 
   bool isEnabled() const { return m_watering_enabled.value(); }
   float moisturePercent() const { return m_moisture.filteredValue(); }
+  unsigned rawMoisture() const { return m_moisture.rawCounts(); }
+
   float maxTarget() const { return m_max_moisture_target.value(); }
   float minTarget() const { return m_min_moisture_target.value(); }
 
@@ -91,8 +93,16 @@ class Watering : public Module {
   bool isReservoirEmpty() const { return !m_reservoir_check->haveWater(); }
 
   const VariableGroup& variables() const { return m_vg; }
+  const VariableGroup& configVariables() const { return m_cfg_vg; }
+
+  Relay& relay() { return m_pump; }
+
+  const DoseLog& doseLog() const { return m_dose_log; }
 
   void loop();
+
+  void getApiPlants(JsonObject json) const;
+  bool putApiPlants(JsonObject json);
 
  protected:
   // This method performs the work of the state machine.

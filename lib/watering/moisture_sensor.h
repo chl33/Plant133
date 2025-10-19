@@ -44,6 +44,7 @@ class MoistureSensor {
 
   const KernelFilter& filter() const { return m_filter; }
   const MappedAnalogSensor& adc() const { return m_mapped_adc; }
+  MappedAnalogSensor& adc() { return m_mapped_adc; }
 
  private:
   MappedAnalogSensor m_mapped_adc;
