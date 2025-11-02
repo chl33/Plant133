@@ -3335,6 +3335,106 @@
 			)
 		)
 	)
+	(footprint "chl33_library:MountingHole_2.5mm_stencil_hole"
+		(locked yes)
+		(layer "F.Cu")
+		(uuid "4172ea7d-188c-4943-b8be-2d4069c1119b")
+		(at 103.251 62.484)
+		(descr "Mounting Hole 2.5mm, no annular")
+		(tags "mounting hole 2.5mm no annular")
+		(property "Reference" "REF**"
+			(at 0 -3.5 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "ccc8a8b3-65d0-420a-bbd5-77075db0d4d9")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Value" "MountingHole_2.5mm_stencil_hole"
+			(at 0 3.5 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "96d738af-b169-4111-bb4b-4aa70f8b2a7f")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "42dbaa9b-a938-4674-a79b-e6eb1031a0b7")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "4fdf0e3a-6d8a-4fcc-9704-6b71fdc93239")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(attr exclude_from_pos_files exclude_from_bom)
+		(fp_circle
+			(center 0 0)
+			(end 2.5 0)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(fill no)
+			(layer "Cmts.User")
+			(uuid "b45ed62c-c26c-4f7a-8f74-2f51857e9368")
+		)
+		(fp_circle
+			(center 0 0)
+			(end 2.75 0)
+			(stroke
+				(width 0.05)
+				(type solid)
+			)
+			(fill no)
+			(layer "F.CrtYd")
+			(uuid "a384a507-a423-4589-bb87-47a5f16830d9")
+		)
+		(fp_text user "${REFERENCE}"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(uuid "6e07e811-7409-4cd5-989e-b20e64d092cd")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(pad "" np_thru_hole circle
+			(at 0 0)
+			(size 2.5 2.5)
+			(drill 2.5)
+			(layers "F&B.Cu" "*.Paste" "*.Mask")
+			(uuid "00f10b3b-b973-4edf-9da7-ca35d9d2a04d")
+		)
+		(embedded_fonts no)
+	)
 	(footprint "Diode_SMD:D_SMA"
 		(layer "F.Cu")
 		(uuid "41a12e77-66db-47cb-8ffa-6351114ffedc")
@@ -4468,7 +4568,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "abc90a19-98a8-421f-b1f9-3129eb6f3254")
 		)
 		(pad "39" smd rect
 			(at -2.205 -0.91 90)
@@ -4477,7 +4577,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "7af54cb7-e1f1-4721-b426-e34bb5bab518")
 		)
 		(pad "39" thru_hole circle
 			(at -2.205 -0.1475 90)
@@ -4490,7 +4590,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "54768142-f0a1-4786-ab26-780bbe48a7d0")
 		)
 		(pad "39" smd rect
 			(at -2.205 0.615 90)
@@ -4499,7 +4599,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "3a2b7e05-19c2-448a-b476-8b8e41b44cd0")
 		)
 		(pad "39" thru_hole circle
 			(at -1.4425 -2.435 90)
@@ -4512,7 +4612,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "cbf45bf7-0bfa-446b-af79-458a14bc3f7b")
 		)
 		(pad "39" thru_hole circle
 			(at -1.4425 -0.91 90)
@@ -4525,7 +4625,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "9c769fd9-4b79-4a8b-b269-a218ee4df555")
 		)
 		(pad "39" thru_hole circle
 			(at -1.4425 0.615 90)
@@ -4538,7 +4638,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "a6fa27b7-e783-405e-a785-672a7ca8da3d")
 		)
 		(pad "39" smd rect
 			(at -0.68 -2.435 90)
@@ -4547,7 +4647,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "9c6236e4-9d60-4fe0-8f3c-4938f12690c4")
 		)
 		(pad "39" thru_hole circle
 			(at -0.68 -1.6725 90)
@@ -4560,7 +4660,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "5aa8c01f-8d47-4473-a705-b24da2780023")
 		)
 		(pad "39" smd rect
 			(at -0.68 -0.91 90)
@@ -4569,7 +4669,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "df1dedb2-259f-45b8-ad34-60bbf8b24522")
 		)
 		(pad "39" smd rect
 			(at -0.68 -0.91 90)
@@ -4580,7 +4680,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "dcbbf810-4d12-4fcc-971e-90dc19e09e9a")
 		)
 		(pad "39" thru_hole circle
 			(at -0.68 -0.1475 90)
@@ -4593,7 +4693,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "facb7fb6-34fd-4f94-a16c-6cce40082a40")
 		)
 		(pad "39" smd rect
 			(at -0.68 0.615 90)
@@ -4602,7 +4702,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "a4891340-27b9-4590-a76b-fa7d7d283cb2")
 		)
 		(pad "39" thru_hole circle
 			(at 0.0825 -2.435 90)
@@ -4615,7 +4715,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "ccc4b06c-1aaa-4ff3-9da8-1ecf1d906daf")
 		)
 		(pad "39" thru_hole circle
 			(at 0.0825 -0.91 90)
@@ -4628,7 +4728,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "6eff7b34-2e87-43ca-9e6a-7ba437cd96a1")
 		)
 		(pad "39" thru_hole circle
 			(at 0.0825 0.615 90)
@@ -4641,7 +4741,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "1e7754a2-3274-4e2b-8d84-55e50ab7f2a6")
 		)
 		(pad "39" smd rect
 			(at 0.845 -2.435 90)
@@ -4650,7 +4750,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "1322242e-bc0a-4f02-89c9-fa15231f709a")
 		)
 		(pad "39" thru_hole circle
 			(at 0.845 -1.6725 90)
@@ -4663,7 +4763,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "fcf993b9-6b7c-4393-882b-ce4ea3486b6e")
 		)
 		(pad "39" smd rect
 			(at 0.845 -0.91 90)
@@ -4672,7 +4772,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "47dd6d09-dbed-4922-ab71-ae2c6b33d8f6")
 		)
 		(pad "39" thru_hole circle
 			(at 0.845 -0.1475 90)
@@ -4685,7 +4785,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "372c623e-9e54-4e14-82bb-d2379da71e2e")
 		)
 		(pad "39" smd rect
 			(at 0.845 0.615 90)
@@ -4694,7 +4794,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "passive")
-			(uuid "a2294209-e295-48db-b601-9b9b21a34aed")
+			(uuid "644e8cca-9eab-4bcf-883c-7c841929dd8e")
 		)
 		(zone
 			(net 0)
@@ -12912,6 +13012,106 @@
 			)
 		)
 	)
+	(footprint "chl33_library:MountingHole_2.5mm_stencil_hole"
+		(locked yes)
+		(layer "F.Cu")
+		(uuid "d1304ba5-4103-46be-9975-a5580564d668")
+		(at 49.784 98.806)
+		(descr "Mounting Hole 2.5mm, no annular")
+		(tags "mounting hole 2.5mm no annular")
+		(property "Reference" "REF**"
+			(at 0 -3.5 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "ea2e8e45-6517-4e8a-989e-29abe48b84e7")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Value" "MountingHole_2.5mm_stencil_hole"
+			(at 0 3.5 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "44d2b4e3-d630-4963-9807-6aa6b70c0aaa")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "5940ba4b-27e4-4658-8fcb-a9fb7a6dfd33")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "84951457-cfe0-4e06-851c-5abee570e760")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(attr exclude_from_pos_files exclude_from_bom)
+		(fp_circle
+			(center 0 0)
+			(end 2.5 0)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(fill no)
+			(layer "Cmts.User")
+			(uuid "68763b06-13d5-48dd-84fc-dd580bfb8168")
+		)
+		(fp_circle
+			(center 0 0)
+			(end 2.75 0)
+			(stroke
+				(width 0.05)
+				(type solid)
+			)
+			(fill no)
+			(layer "F.CrtYd")
+			(uuid "a0af91f9-e04e-483b-ba41-64a1dab1cc54")
+		)
+		(fp_text user "${REFERENCE}"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(uuid "2f33e352-ca77-4644-b49c-12b1f82b1368")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(pad "" np_thru_hole circle
+			(at 0 0)
+			(size 2.5 2.5)
+			(drill 2.5)
+			(layers "F&B.Cu" "*.Paste" "*.Mask")
+			(uuid "f175e979-960e-49e4-bffd-4382cac49935")
+		)
+		(embedded_fonts no)
+	)
 	(footprint "Resistor_SMD:R_0603_1608Metric"
 		(layer "F.Cu")
 		(uuid "d1a024d2-3d0a-4b6c-8441-52da43d431c6")
@@ -14655,7 +14855,7 @@
 			(net 2 "GND")
 			(pinfunction "Shield")
 			(pintype "passive")
-			(uuid "dd68e6c1-25a9-4c78-98ef-0c4aaa20faf0")
+			(uuid "7ff74b53-2c7f-4df5-a944-d4cec185c405")
 		)
 		(pad "6" thru_hole oval
 			(at -2.5 -1.4)
@@ -14667,7 +14867,7 @@
 			(net 2 "GND")
 			(pinfunction "Shield")
 			(pintype "passive")
-			(uuid "dd68e6c1-25a9-4c78-98ef-0c4aaa20faf0")
+			(uuid "233ba345-fe0b-4971-9e95-6502c89ca611")
 		)
 		(pad "6" smd roundrect
 			(at -1 1.3)
@@ -14677,7 +14877,7 @@
 			(net 2 "GND")
 			(pinfunction "Shield")
 			(pintype "passive")
-			(uuid "dd68e6c1-25a9-4c78-98ef-0c4aaa20faf0")
+			(uuid "06083cde-4a46-4f79-a46b-5f3e2683e484")
 		)
 		(pad "6" smd roundrect
 			(at 1 1.3)
@@ -14687,7 +14887,7 @@
 			(net 2 "GND")
 			(pinfunction "Shield")
 			(pintype "passive")
-			(uuid "dd68e6c1-25a9-4c78-98ef-0c4aaa20faf0")
+			(uuid "ba4d79be-1e50-44d8-9115-833794016fb2")
 		)
 		(pad "6" thru_hole oval
 			(at 2.5 -1.4)
@@ -14699,7 +14899,7 @@
 			(net 2 "GND")
 			(pinfunction "Shield")
 			(pintype "passive")
-			(uuid "dd68e6c1-25a9-4c78-98ef-0c4aaa20faf0")
+			(uuid "ec66e46c-bf91-45ff-aa4e-d3052adde86b")
 		)
 		(pad "6" smd roundrect
 			(at 3.025 1.3)
@@ -14709,7 +14909,7 @@
 			(net 2 "GND")
 			(pinfunction "Shield")
 			(pintype "passive")
-			(uuid "dd68e6c1-25a9-4c78-98ef-0c4aaa20faf0")
+			(uuid "5f50b758-e1a0-4f4d-abb9-11ac5b870925")
 		)
 		(pad "6" thru_hole oval
 			(at 3.5 1.3)
@@ -14721,7 +14921,7 @@
 			(net 2 "GND")
 			(pinfunction "Shield")
 			(pintype "passive")
-			(uuid "dd68e6c1-25a9-4c78-98ef-0c4aaa20faf0")
+			(uuid "7f61cd49-0ff7-4608-b0da-8838dda9ffa6")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/Connector_USB.3dshapes/USB_Micro-B_Amphenol_10118194_Horizontal.step"
