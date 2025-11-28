@@ -22,13 +22,7 @@
 #include "svelteesp32async.h"
 #include "watering.h"
 
-#define SW_VERSION "0.9.1"
-
-// TODO:
-//  Fixes to make to the svelte inteface:
-//  - Can we shrink or hide the cards for disabled plants in the overview?
-//  - Add a pump-test button for each plant on configuration page.
-//  - Restart button. Maybe put in an app-status page.
+#define SW_VERSION "0.9.2"
 
 namespace {
 
