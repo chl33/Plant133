@@ -5,6 +5,7 @@
 #include <AsyncJson.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
+#include <esp_task_wdt.h>
 #include <og3/constants.h>
 #include <og3/ha_app.h>
 #include <og3/html_table.h>
@@ -22,7 +23,7 @@
 #include "svelteesp32async.h"
 #include "watering.h"
 
-#define SW_VERSION "0.9.2"
+#define SW_VERSION "0.9.3"
 
 namespace {
 
@@ -471,7 +472,14 @@ void setup() {
 
   // Run the og3 application setup code.
   s_app.setup();
+
+  // Initialize Watchdog Timer with 5 second timeout
+  esp_task_wdt_init(5, true);
+  esp_task_wdt_add(NULL);  // Add current thread (loopTask) to WDT
 }
 
 // This is called repeaedly when code is running.
-void loop() { s_app.loop(); }
+void loop() {
+  s_app.loop();
+  esp_task_wdt_reset();  // Reset watchdog timer
+}
