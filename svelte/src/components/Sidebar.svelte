@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { Droplet, Wifi, Radio, Home } from 'lucide-svelte';
+  import { Droplet, Wifi, Radio, Home, RefreshCw } from 'lucide-svelte';
 
   export let currentPage;
   export let plants;
@@ -14,6 +14,17 @@
 
   $: plantsList = $plants;
   $: status = $systemStatus;
+
+  async function restartDevice() {
+    if (!confirm('Are you sure you want to restart the device?')) return;
+    try {
+      await fetch('/api/restart', { method: 'POST' });
+      alert('Device is restarting...');
+    } catch (err) {
+      console.error('Error restarting:', err);
+      alert('Failed to restart device');
+    }
+  }
 </script>
 
 <aside class="sidebar">
@@ -56,6 +67,11 @@
   </button>
 
   <div class="nav-section">Device</div>
+
+  <button class="nav-button" on:click={restartDevice}>
+    <RefreshCw size={20} />
+    <span>Restart Device</span>
+  </button>
 
   <div>
   <p>Software: v{status.software}</p>

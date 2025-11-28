@@ -22,13 +22,7 @@
 #include "svelteesp32async.h"
 #include "watering.h"
 
-#define SW_VERSION "0.9.1"
-
-// TODO:
-//  Fixes to make to the svelte inteface:
-//  - Can we shrink or hide the cards for disabled plants in the overview?
-//  - Add a pump-test button for each plant on configuration page.
-//  - Restart button. Maybe put in an app-status page.
+#define SW_VERSION "0.9.2"
 
 namespace {
 
@@ -433,8 +427,8 @@ void setup() {
   s_app.web_server().on("/api/plants", HTTP_GET, apiGetPlants);
   s_app.web_server().on("/api/wifi", HTTP_GET, apiGetWifi);
   s_app.web_server().on("/api/mqtt", HTTP_GET, apiGetMqtt);
-  s_app.web_server().on("/api/moisture", apiGetMoisture);
-  s_app.web_server().on("/api/status", apiGetStatus);
+  s_app.web_server().on("/api/moisture", HTTP_GET, apiGetMoisture);
+  s_app.web_server().on("/api/status", HTTP_GET, apiGetStatus);
 
   {  // Add pump test json callback.
     AsyncCallbackJsonWebHandler* pumpTestHandler = new AsyncCallbackJsonWebHandler("/test/pump");
@@ -469,6 +463,11 @@ void setup() {
         [](AsyncWebServerRequest* request, JsonVariant json) { putMqttConfig(request, json); });
     s_app.web_server().addHandler(handler);
   }
+
+  s_app.web_server().on("/api/restart", HTTP_POST, [](AsyncWebServerRequest* request) {
+    request->send(200, "text/plain", "restarting");
+    s_app.tasks().runIn(1000, []() { ESP.restart(); });
+  });
 
   // Run the og3 application setup code.
   s_app.setup();

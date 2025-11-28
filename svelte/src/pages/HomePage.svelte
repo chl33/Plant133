@@ -73,7 +73,7 @@
 
   <div class="card-grid">
     {#each plantsList as plant}
-      <div class="overview-card">
+      <div class="overview-card" class:disabled-card={!plant.enabled}>
         <div class="card-header">
           <Droplet size={24} class="text-green-600" />
           <h3>{plant.name}</h3>
@@ -157,6 +157,11 @@
     padding: 1.5rem;
     border-radius: 0.5rem;
     border: 1px solid #e5e7eb;
+  }
+
+  .overview-card.disabled-card {
+    opacity: 0.7;
+    background: #f9fafb;
   }
 
   @media (max-width: 768px) {
