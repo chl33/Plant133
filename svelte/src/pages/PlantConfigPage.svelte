@@ -1,5 +1,5 @@
 <script>
-  import { Save } from 'lucide-svelte';
+  import { Save, Play } from 'lucide-svelte';
   import MoistureGauge from '../components/MoistureGauge.svelte';
 
   // API base URL
@@ -58,6 +58,29 @@
       saveMessage = `Error: ${err.message}`;
     } finally {
       saving = false;
+    }
+  }
+
+  async function testPump() {
+    try {
+      const response = await fetch('/test/pump', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pumpId: plant.id, duration: 1000 })
+      });
+
+      if (!response.ok) throw new Error('Network error');
+
+      const result = await response.json();
+      if (!result.isOk) {
+        throw new Error(result.message || 'Pump test failed');
+      }
+
+      saveMessage = 'Pump test started (1s)';
+      setTimeout(() => saveMessage = '', 3000);
+    } catch (err) {
+      console.error('Error testing pump:', err);
+      saveMessage = `Error: ${err.message}`;
     }
   }
 </script>
@@ -208,6 +231,15 @@
             on:change={() => updatePlant('maxDosesPerCycle', plant.maxDosesPerCycle)}
           />
           <div class="form-hint">Maximum doses while watering and per day</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Test Pump</label>
+          <button class="btn btn-secondary" on:click={testPump}>
+            <Play size={20} />
+            Test (1s)
+          </button>
+          <div class="form-hint">Run pump for 1 second</div>
         </div>
       </div>
     </div>
@@ -390,6 +422,15 @@
   .btn-primary:disabled {
     background: #9ca3af;
     cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    background: #4b5563;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background: #374151;
   }
 
   .save-message {

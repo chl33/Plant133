@@ -433,8 +433,8 @@ void setup() {
   s_app.web_server().on("/api/plants", HTTP_GET, apiGetPlants);
   s_app.web_server().on("/api/wifi", HTTP_GET, apiGetWifi);
   s_app.web_server().on("/api/mqtt", HTTP_GET, apiGetMqtt);
-  s_app.web_server().on("/api/moisture", apiGetMoisture);
-  s_app.web_server().on("/api/status", apiGetStatus);
+  s_app.web_server().on("/api/moisture", HTTP_GET, apiGetMoisture);
+  s_app.web_server().on("/api/status", HTTP_GET, apiGetStatus);
 
   {  // Add pump test json callback.
     AsyncCallbackJsonWebHandler* pumpTestHandler = new AsyncCallbackJsonWebHandler("/test/pump");
@@ -469,6 +469,11 @@ void setup() {
         [](AsyncWebServerRequest* request, JsonVariant json) { putMqttConfig(request, json); });
     s_app.web_server().addHandler(handler);
   }
+
+  s_app.web_server().on("/api/restart", HTTP_POST, [](AsyncWebServerRequest* request) {
+    request->send(200, "text/plain", "restarting");
+    s_app.tasks().runIn(1000, []() { ESP.restart(); });
+  });
 
   // Run the og3 application setup code.
   s_app.setup();
