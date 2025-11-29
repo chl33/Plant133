@@ -33,19 +33,10 @@ Please see the [instructions](instructions.md) for how to assemble and set up a 
 *   [PlatformIO](https://platformio.org/) (Core or VSCode extension)
 *   [Node.js](https://nodejs.org/) (for building the web interface)
 
-### Building the Web Interface
-The web interface is built with Svelte and must be compiled before uploading to the ESP32's filesystem.
-
-```bash
-./build-svelte.sh
-```
-
-This generates the static HTML/CSS/JS files in `data/static/`, then converts them into a header file (using [svelteesp32](https://github.com/BCsabaEngine/svelteesp32))to include them all in the firmware.
-
 ### Building and Flashing Firmware
 
 1.  **Configure Secrets**: Copy `secrets.ini.example` to `secrets.ini` and set your WiFi credentials, OTA password, and MQTT details.
-2.  **Build Firmware**:
+2.  **Build the Web interface and Firmware**:
     ```bash
     pio run
     ```
