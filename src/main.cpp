@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 #include <Arduino.h>
+#include <ArduinoOTA.h>
 #include <AsyncJson.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
@@ -476,6 +477,11 @@ void setup() {
   // Initialize Watchdog Timer with 5 second timeout
   esp_task_wdt_init(5, true);
   esp_task_wdt_add(NULL);  // Add current thread (loopTask) to WDT
+
+  // Disable WDT during OTA
+  ArduinoOTA.onStart([]() { esp_task_wdt_delete(NULL); });
+  ArduinoOTA.onEnd([]() { esp_task_wdt_add(NULL); });
+  ArduinoOTA.onError([](ota_error_t error) { esp_task_wdt_add(NULL); });
 }
 
 // This is called repeaedly when code is running.
