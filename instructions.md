@@ -86,7 +86,7 @@ Select a plant from the main menu and click the settings icon.
 *   **Dosing Logic**:
     *   **Seconds between doses**: Time to wait for water to soak in before checking moisture again (Default: 900s / 15 min).
     *   **Max doses per cycle**: Safety limit to prevent flooding if the sensor fails (Default: 5).
-    ![Web Watering Config](images/plant133-svelte-interface-v091.jpg plant133-svelte-plant-cfg.png)
+    ![Web Watering Config](images/plant133-svelte-interface-v091.jpg)
 
 ## 4. Final Steps
 
