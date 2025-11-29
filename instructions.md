@@ -86,14 +86,13 @@ Select a plant from the main menu and click the settings icon.
 *   **Dosing Logic**:
     *   **Seconds between doses**: Time to wait for water to soak in before checking moisture again (Default: 900s / 15 min).
     *   **Max doses per cycle**: Safety limit to prevent flooding if the sensor fails (Default: 5).
-    ![Web Watering Config](images/plant133-svelte-interface-v091.jpg)
+    ![Web Watering Config](images/plant133-svelte-plant-cfg.png)
 
 ## 4. Final Steps
 
 1.  **Enable System**: In the configuration page, toggle **"Enable Automatic Watering"**.
-2.  **Enable Reservoir Check**: Ideally, enable the reservoir water level detection to protect your pumps.
-3.  **Fill Reservoir**: Add water to your reservoir.
-4.  **Monitor**: Watch the system for the first few cycles and adjust `Pump On Time` or moisture thresholds as needed.
+2.  **Fill Reservoir**: Add water to your reservoir.
+3.  **Monitor**: Watch the system for the first few cycles and adjust `Pump On Time` or moisture thresholds as needed.
 
 ### Advanced
 *   **Grafana**: Set up a dashboard to visualize moisture trends over time.
