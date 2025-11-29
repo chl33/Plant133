@@ -10,7 +10,6 @@ Hang the EBox on the side of your water reservoir. Place your plant and reservoi
 ![Hang EBox](images/plant133-hang-ebox.jpg)
 
 ### Reservoir Setup
-For each plant you intend to water:
 
 1.  **Install the Water Level Float**:
     Place the float into the reservoir insert.
@@ -20,10 +19,12 @@ For each plant you intend to water:
     ![Wire Float](images/plant133-wire-float.jpg)
 
 2.  **Install the Pump**:
-    Place a pump into the reservoir insert.
+    For each plant you intend to water, place a pump into the reservoir insert.
     ![Install Motor](images/install-motor.jpg)
 
 ### Wiring and Tubing
+
+For each plant,
 
 3.  **Connect Sensors and Pumps**:
     Connect the soil moisture sensor and the corresponding pump to the EBox. Ensure connectors are aligned vertically under the same number (1-4).
@@ -55,10 +56,10 @@ For each plant you intend to water:
     Open a web browser and navigate to `http://192.168.4.1`. You may need to accept a warning about a non-encrypted connection.
 
 3.  **Configure WiFi**:
-    *   Click **"WiFi Config"** on the main page.
+    *   Click **"WiFi Setup"** on the main page.
     *   Enter your home WiFi credentials.
     *   Click **"Save"**, then **"Back"**, and finally **"Restart"** to reboot the device.
-    ![Web WiFi Config](images/web-wifi-config.png)
+    ![Web WiFi Config](images/plant133-svelte-wifi.png)
 
 4.  **Reconnect**:
     Connect your phone/computer back to your home WiFi network. Look at the device's OLED screen to find its new IP address (e.g., `192.168.1.x`) or try accessing `http://plant133.local` (if mDNS is active).
@@ -67,13 +68,13 @@ For each plant you intend to water:
 
 ### MQTT Setup (Optional)
 If you use Home Assistant or another home automation system:
-1.  Navigate to the **MQTT Config** page via the web interface.
+1.  Navigate to the **MQTT Setup** page via the web interface.
 2.  Enter your Broker address, port, and credentials.
 3.  Save. The device should automatically appear in Home Assistant if discovery is enabled.
-    ![Web MQTT Config](images/web-mqtt-config.png)
+    ![Web MQTT Config](images/plant133-svelte-mqtt.png)
 
 ### Plant Configuration
-Select a plant from the main menu and click **"Configure"** (or the settings icon).
+Select a plant from the main menu and click the settings icon.
 
 *   **Moisture Targets**: Set the **Minimum** (start watering) and **Maximum** (stop watering) soil moisture percentages.
 *   **Dose Duration**: Set how long the pump runs per dose (in milliseconds).
@@ -85,7 +86,7 @@ Select a plant from the main menu and click **"Configure"** (or the settings ico
 *   **Dosing Logic**:
     *   **Seconds between doses**: Time to wait for water to soak in before checking moisture again (Default: 900s / 15 min).
     *   **Max doses per cycle**: Safety limit to prevent flooding if the sensor fails (Default: 5).
-    ![Web Watering Config](images/web-water-config.png)
+    ![Web Watering Config](images/plant133-svelte-interface-v091.jpg plant133-svelte-plant-cfg.png)
 
 ## 4. Final Steps
 
