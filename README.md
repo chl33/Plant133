@@ -37,12 +37,10 @@ Please see the [instructions](instructions.md) for how to assemble and set up a 
 The web interface is built with Svelte and must be compiled before uploading to the ESP32's filesystem.
 
 ```bash
-cd svelte
-npm install
-npm run build
+./build-svelte.sh
 ```
 
-This generates the static HTML/CSS/JS files in `data/static/`.
+This generates the static HTML/CSS/JS files in `data/static/`, then converts them into a header file (using [svelteesp32](https://github.com/BCsabaEngine/svelteesp32))to include them all in the firmware.
 
 ### Building and Flashing Firmware
 
