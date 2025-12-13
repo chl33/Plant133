@@ -6,7 +6,6 @@
 #include <AsyncJson.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
-#include <esp_task_wdt.h>
 #include <og3/constants.h>
 #include <og3/ha_app.h>
 #include <og3/html_table.h>
@@ -14,6 +13,7 @@
 #include <og3/shtc3.h>
 #include <og3/units.h>
 #include <og3/variable.h>
+#include <og3/wifi_watchdog.h>
 
 #include <algorithm>
 #include <array>
@@ -24,7 +24,7 @@
 #include "svelteesp32async.h"
 #include "watering.h"
 
-#define SW_VERSION "0.9.4"
+#define SW_VERSION "0.9.5"
 
 namespace {
 
@@ -90,6 +90,8 @@ og3::PeriodicTaskScheduler climate_scheduler(
       s_app.mqttSend(s_climate_vg);
     },
     &s_app.tasks());
+
+og3::WifiWatchdog s_watchdog(&s_app, std::chrono::seconds(5), std::chrono::seconds(1));
 
 // s_reservior monitors the water level of the reservoir: the float, and the number of seconds
 //  the pumps have run since the float detected low water level.
@@ -473,19 +475,7 @@ void setup() {
 
   // Run the og3 application setup code.
   s_app.setup();
-
-  // Initialize Watchdog Timer with 5 second timeout
-  esp_task_wdt_init(5, true);
-  esp_task_wdt_add(NULL);  // Add current thread (loopTask) to WDT
-
-  // Disable WDT during OTA
-  ArduinoOTA.onStart([]() { esp_task_wdt_delete(NULL); });
-  ArduinoOTA.onEnd([]() { esp_task_wdt_add(NULL); });
-  ArduinoOTA.onError([](ota_error_t error) { esp_task_wdt_add(NULL); });
 }
 
 // This is called repeaedly when code is running.
-void loop() {
-  s_app.loop();
-  esp_task_wdt_reset();  // Reset watchdog timer
-}
+void loop() { s_app.loop(); }
