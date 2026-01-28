@@ -46,7 +46,7 @@ Please see the [instructions](instructions.md) for how to assemble and set up a 
     ```bash
     pio run
     ```
-4.  **Upload Filesystem** (contains the web interface):
+4.  **Upload Filesystem** (style file for legacy web interface):
     ```bash
     pio run -t uploadfs
     ```
