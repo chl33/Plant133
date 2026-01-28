@@ -36,15 +36,21 @@ Please see the [instructions](instructions.md) for how to assemble and set up a 
 ### Building and Flashing Firmware
 
 1.  **Configure Secrets**: Copy `secrets.ini.example` to `secrets.ini` and set your WiFi credentials, OTA password, and MQTT details.
-2.  **Build the Web interface and Firmware**:
+2.  **Onetime setup for building the web interface**:
+    ```bash
+	cd svelte
+	npm install vite --save-dev
+	npm install -D svelteesp32
+	```
+3.  **Build the Web interface and Firmware**:
     ```bash
     pio run
     ```
-3.  **Upload Filesystem** (contains the web interface):
+4.  **Upload Filesystem** (style file for legacy web interface):
     ```bash
     pio run -t uploadfs
     ```
-4.  **Upload Firmware**:
+5.  **Upload Firmware**:
     ```bash
     pio run -t upload
     ```
