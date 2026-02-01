@@ -57,6 +57,18 @@
     <div class="status-badge" class:disabled={status && !status.mqttConnected}>
       {status && status.mqttConnected ? 'Connected' : 'Not connected'}
     </div>
+
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          bind:checked={mqttConfig.enabled}
+          on:change={() => updateMqtt('enabled', mqttConfig.enabled)}
+        />
+        Enable MQTT Updates
+      </label>
+    </div>
+
     <div class="form-group">
       <label class="form-label">MQTT Broker Address</label>
       <input
@@ -213,5 +225,24 @@
   .status-badge.disabled {
     background: #fee2e2;
     color: #991b1b;
+  }
+
+  .checkbox-group {
+    margin-top: 1rem;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+  }
+
+  input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: #7c3aed;
   }
 </style>
