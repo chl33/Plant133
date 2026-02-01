@@ -24,7 +24,7 @@
 #include "svelteesp32async.h"
 #include "watering.h"
 
-#define SW_VERSION "0.9.5"
+#define SW_VERSION "0.9.6"
 
 namespace {
 
@@ -392,6 +392,7 @@ void apiGetMqtt(AsyncWebServerRequest* request) {
 
   const auto& mqtt = s_app.mqtt_manager();
 
+  json["enabled"] = mqtt.isEnabled();
   json["host"] = mqtt.host();
   json["password"] = mqtt.auth_password();
   json["user"] = mqtt.auth_user();
@@ -410,6 +411,13 @@ void putMqttConfig(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
     request->send(500, "text/plain", "no values updated");
   }
   s_app.config().write_config(s_app.mqtt_manager().variables());
+
+  if (s_app.mqtt_manager().isEnabled() && !s_app.mqtt_manager().isConnected()) {
+    s_app.mqtt_manager().connect();
+  } else if (!s_app.mqtt_manager().isEnabled() && s_app.mqtt_manager().isConnected()) {
+    s_app.mqtt_manager().disconnect();
+  }
+
   request->send(200, "text/plain", "ok");
 }
 
