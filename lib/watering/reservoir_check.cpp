@@ -42,8 +42,8 @@ ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
                             ha::device_class::sensor::kDuration);
       });
     }
-    m_app->web_server().on(
-        "/config", [this](AsyncWebServerRequest* request) { this->handleConfigRequest(request); });
+    m_app->web_server_module().on(
+        "/config", [this](NetRequest* request) { return this->handleConfigRequest(request); });
   });
 }
 
@@ -60,7 +60,7 @@ void ReservoirCheck::pumpRanForMsec(float msecs) {
   }
 }
 
-void ReservoirCheck::handleConfigRequest(AsyncWebServerRequest* request) {
+NetHandlerStatus ReservoirCheck::handleConfigRequest(NetRequest* request) {
 #ifndef NATIVE
   ::og3::read(*request, m_cfg_vg);
   m_html.clear();
@@ -71,6 +71,7 @@ void ReservoirCheck::handleConfigRequest(AsyncWebServerRequest* request) {
     m_config->write_config(m_cfg_vg);
   }
 #endif
+  NET_REPLY(request, ESP_OK);
 }
 
 }  // namespace og3

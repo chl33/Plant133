@@ -11,7 +11,6 @@
 
 #include <algorithm>
 
-#include "ArduinoJson/Variant/JsonVariant.hpp"
 #include "watering_constants.h"
 
 namespace og3 {
@@ -64,13 +63,12 @@ const char* Watering::s_state_names[] = {
 };
 
 // static
-int Watering::direction() const { return wateringDirection(m_state.value()); }
+int Watering::direction() const {
+  return wateringDirection(static_cast<Watering::State>(m_state.value()));
+}
 
 String Watering::StateVariable::string() const { return Watering::s_state_names[m_value]; }
 bool Watering::StateVariable::fromString(const String& value) {
-  if (fromString(value)) {
-    return true;
-  }
   for (int i = 0; i <= Watering::kStateTest; i++) {
     if (0 == strcmp(value.c_str(), s_state_names[i])) {
       m_value = static_cast<Watering::State>(i);
@@ -174,13 +172,14 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
     }
   });
   add_update_fn([this]() { loop(); });
-  m_app->web_server().on(
-      statusUrl(), [this](AsyncWebServerRequest* request) { this->handleStatusRequest(request); });
-  m_app->web_server().on(
-      configUrl(), [this](AsyncWebServerRequest* request) { this->handleConfigRequest(request); });
-  m_app->web_server().on(pumpTestUrl(), [this](AsyncWebServerRequest* request) {
+  m_app->web_server_module().on(
+      statusUrl(), [this](NetRequest* request) { return this->handleStatusRequest(request); });
+  m_app->web_server_module().on(
+      configUrl(), [this](NetRequest* request) { return this->handleConfigRequest(request); });
+  m_app->web_server_module().on(pumpTestUrl(), [this](NetRequest* request) {
     testPump();
     request->redirect(statusUrl());
+    NET_REPLY(request, ESP_OK);
   });
 }
 
@@ -408,7 +407,7 @@ void Watering::_fullTest() {
   m_mode_led.off();
 }
 
-void Watering::handleStatusRequest(AsyncWebServerRequest* request) {
+NetHandlerStatus Watering::handleStatusRequest(NetRequest* request) {
 #ifndef NATIVE
   m_html.clear();
   html::writeTableInto(&m_html, variables());
@@ -417,8 +416,9 @@ void Watering::handleStatusRequest(AsyncWebServerRequest* request) {
   m_html += HTML_BUTTON("/", "Back");
   sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
 #endif
+  NET_REPLY(request, ESP_OK);
 }
-void Watering::handleConfigRequest(AsyncWebServerRequest* request) {
+NetHandlerStatus Watering::handleConfigRequest(NetRequest* request) {
 #ifndef NATIVE
   ::og3::read(*request, m_cfg_vg);
   m_html.clear();
@@ -429,6 +429,7 @@ void Watering::handleConfigRequest(AsyncWebServerRequest* request) {
     m_config->write_config(m_cfg_vg);
   }
 #endif
+  NET_REPLY(request, ESP_OK);
 }
 
 void Watering::getApiPlants(JsonObject json) const {
