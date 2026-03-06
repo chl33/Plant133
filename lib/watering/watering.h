@@ -121,8 +121,8 @@ class Watering : public Module {
   const char* pumpTestUrl() const { return m_pump_test_url.c_str(); }
   const char* varname(const char* name, std::string* str);
 
-  NetHandlerStatus handleStatusRequest(NetRequest* request);
-  NetHandlerStatus handleConfigRequest(NetRequest* request);
+  NetHandlerStatus handleStatusRequest(NetRequest* request, NetResponse* response);
+  NetHandlerStatus handleConfigRequest(NetRequest* request, NetResponse* response);
 
   HAApp* const m_app;
   HADependenciesArray<3> m_dependencies;

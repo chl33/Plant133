@@ -172,13 +172,15 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
     }
   });
   add_update_fn([this]() { loop(); });
-  m_app->web_server_module().on(
-      statusUrl(), [this](NetRequest* request) { return this->handleStatusRequest(request); });
-  m_app->web_server_module().on(
-      configUrl(), [this](NetRequest* request) { return this->handleConfigRequest(request); });
-  m_app->web_server_module().on(pumpTestUrl(), [this](NetRequest* request) {
+  m_app->web_server_module().on(statusUrl(), [this](NetRequest* request, NetResponse* response) {
+    return this->handleStatusRequest(request, response);
+  });
+  m_app->web_server_module().on(configUrl(), [this](NetRequest* request, NetResponse* response) {
+    return this->handleConfigRequest(request, response);
+  });
+  m_app->web_server_module().on(pumpTestUrl(), [this](NetRequest* request, NetResponse* response) {
     testPump();
-    request->redirect(statusUrl());
+    response->redirect(statusUrl());
     NET_REPLY(request, ESP_OK);
   });
 }
@@ -407,24 +409,24 @@ void Watering::_fullTest() {
   m_mode_led.off();
 }
 
-NetHandlerStatus Watering::handleStatusRequest(NetRequest* request) {
+NetHandlerStatus Watering::handleStatusRequest(NetRequest* request, NetResponse* response) {
 #ifndef NATIVE
   m_html.clear();
   html::writeTableInto(&m_html, variables());
   add_html_button(&m_html, "Configure", configUrl());
   add_html_button(&m_html, "Test pump", pumpTestUrl());
   m_html += HTML_BUTTON("/", "Back");
-  sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
+  sendWrappedHTML(request, response, m_app->board_cname(), this->name(), m_html.c_str());
 #endif
   NET_REPLY(request, ESP_OK);
 }
-NetHandlerStatus Watering::handleConfigRequest(NetRequest* request) {
+NetHandlerStatus Watering::handleConfigRequest(NetRequest* request, NetResponse* response) {
 #ifndef NATIVE
   ::og3::read(*request, m_cfg_vg);
   m_html.clear();
   html::writeFormTableInto(&m_html, m_cfg_vg);
   add_html_button(&m_html, "Back", statusUrl());
-  sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
+  sendWrappedHTML(request, response, m_app->board_cname(), this->name(), m_html.c_str());
   if (m_config) {
     m_config->write_config(m_cfg_vg);
   }

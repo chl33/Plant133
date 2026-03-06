@@ -34,7 +34,7 @@ class ReservoirCheck : public Module {
   void add_html_status_button(String* body) const { add_html_button(body, name(), "/config"); }
 
  private:
-  NetHandlerStatus handleConfigRequest(NetRequest* request);
+  NetHandlerStatus handleConfigRequest(NetRequest* request, NetResponse* response);
 
   HAApp* const m_app;
   HADependenciesArray<2> m_deps;

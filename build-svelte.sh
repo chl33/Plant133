@@ -9,5 +9,4 @@ sed -i 's/void initSvelteStaticFiles(PsychicHttpServer \* server)/void initSvelt
 # Call native_server() directly
 sed -i 's/server->on/web_server->native_server().on/g' ../lib/watering/svelteesp32async.h
 sed -i 's/server->defaultEndpoint/web_server->native_server().defaultEndpoint/g' ../lib/watering/svelteesp32async.h
-# Patch lambda for PsychicHttp 1.x (one argument request, create response inside)
-sed -i 's/\[\](PsychicRequest \* request, PsychicResponse \* response) {/\[\](PsychicRequest \* request) { PsychicResponse responseObj(request); PsychicResponse \* response = \&responseObj;/g' ../lib/watering/svelteesp32async.h
+# sed -i 's/\[\](PsychicRequest \* request, PsychicResponse \* response) {/\[\](PsychicRequest \* request) { PsychicResponse responseObj(request); PsychicResponse \* response = \&responseObj;/g' ../lib/watering/svelteesp32async.h

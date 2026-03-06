@@ -42,8 +42,9 @@ ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
                             ha::device_class::sensor::kDuration);
       });
     }
-    m_app->web_server_module().on(
-        "/config", [this](NetRequest* request) { return this->handleConfigRequest(request); });
+    m_app->web_server_module().on("/config", [this](NetRequest* request, NetResponse* response) {
+      return this->handleConfigRequest(request, response);
+    });
   });
 }
 
@@ -60,13 +61,13 @@ void ReservoirCheck::pumpRanForMsec(float msecs) {
   }
 }
 
-NetHandlerStatus ReservoirCheck::handleConfigRequest(NetRequest* request) {
+NetHandlerStatus ReservoirCheck::handleConfigRequest(NetRequest* request, NetResponse* response) {
 #ifndef NATIVE
   ::og3::read(*request, m_cfg_vg);
   m_html.clear();
   html::writeFormTableInto(&m_html, m_cfg_vg);
   add_html_button(&m_html, "Back", "/");
-  sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
+  sendWrappedHTML(request, response, m_app->board_cname(), this->name(), m_html.c_str());
   if (m_config) {
     m_config->write_config(m_cfg_vg);
   }

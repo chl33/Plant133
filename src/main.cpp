@@ -110,7 +110,7 @@ og3::WebButton s_button_restart = s_app.createRestartButton();
 static String s_body;
 
 // Web callback for main device web page.
-og3::NetHandlerStatus handleWebRoot(og3::NetRequest* request) {
+og3::NetHandlerStatus handleWebRoot(og3::NetRequest* request, og3::NetResponse* response) {
   s_body.clear();
   s_shtc3.read();
   og3::html::writeTableInto(&s_body, s_climate_vg);
@@ -140,7 +140,7 @@ og3::NetHandlerStatus handleWebRoot(og3::NetRequest* request) {
   // Add a button for rebooting the device.
   s_button_restart.add_button(&s_body);
   // Send the page back to the web client.
-  og3::sendWrappedHTML(request, s_app.board_cname(), kSoftware, s_body.c_str());
+  og3::sendWrappedHTML(request, response, s_app.board_cname(), kSoftware, s_body.c_str());
   NET_REPLY(request, ESP_OK);
 }
 
@@ -190,7 +190,7 @@ void draw_graphs() {
   s_oled.screen().display();
 }
 
-og3::NetHandlerStatus statusJson(og3::NetRequest* request) {
+og3::NetHandlerStatus statusJson(og3::NetRequest* request, og3::NetResponse* response) {
   s_body.clear();
   s_shtc3.read();
   JsonDocument jsondoc;
@@ -201,11 +201,11 @@ og3::NetHandlerStatus statusJson(og3::NetRequest* request) {
     plant.variables().toJson(json, 0);
   }
   serializeJson(jsondoc, s_body);
-  request->reply(200, "application/json", s_body.c_str());
+  response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
 }
 
-og3::NetHandlerStatus apiGetPlants(og3::NetRequest* request) {
+og3::NetHandlerStatus apiGetPlants(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonArray array = jsondoc.to<JsonArray>();
   int id = 0;
@@ -216,11 +216,11 @@ og3::NetHandlerStatus apiGetPlants(og3::NetRequest* request) {
     plant.getApiPlants(json);
   }
   serializeJson(jsondoc, s_body);
-  request->reply(200, "application/json", s_body.c_str());
+  response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
 }
 
-og3::NetHandlerStatus apiGetMoisture(og3::NetRequest* request) {
+og3::NetHandlerStatus apiGetMoisture(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonArray array = jsondoc.to<JsonArray>();
   int id = 0;
@@ -234,11 +234,11 @@ og3::NetHandlerStatus apiGetMoisture(og3::NetRequest* request) {
     json["state"] = plant.stateName();
   }
   serializeJson(jsondoc, s_body);
-  request->reply(200, "application/json", s_body.c_str());
+  response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
 }
 
-og3::NetHandlerStatus apiGetStatus(og3::NetRequest* request) {
+og3::NetHandlerStatus apiGetStatus(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
   json["temperature"] = s_shtc3.temperature();
@@ -253,31 +253,33 @@ og3::NetHandlerStatus apiGetStatus(og3::NetRequest* request) {
   json["hardware"] = "1.2";
 #endif
   serializeJson(jsondoc, s_body);
-  request->reply(200, "application/json", s_body.c_str());
+  response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
 }
 
-og3::NetHandlerStatus putApiPlant(int id, og3::NetRequest* request, JsonVariant& jsonIn) {
+og3::NetHandlerStatus putApiPlant(int id, og3::NetRequest* request, og3::NetResponse* response,
+                                  JsonVariant& jsonIn) {
   if (id < 1 || id > static_cast<int>(s_plants.size())) {
-    request->reply(500, "text/plain", "bad plant id");
+    response->send(500, "text/plain", "bad plant id");
     NET_REPLY(request, ESP_FAIL);
   }
   if (!jsonIn.is<JsonObject>()) {
-    request->reply(500, "text/plain", "not a json object");
+    response->send(500, "text/plain", "not a json object");
     NET_REPLY(request, ESP_FAIL);
   }
   JsonObject obj = jsonIn.as<JsonObject>();
   if (!s_plants[id - 1].putApiPlants(obj)) {
-    request->reply(500, "text/plain", "failed to update plant");
+    response->send(500, "text/plain", "failed to update plant");
     NET_REPLY(request, ESP_FAIL);
   }
-  request->reply(200, "text/plain", "ok");
+  response->send(200, "text/plain", "ok");
   NET_REPLY(request, ESP_OK);
 }
 
-og3::NetHandlerStatus pumpTest(og3::NetRequest* request, JsonVariant& jsonIn) {
+og3::NetHandlerStatus pumpTest(og3::NetRequest* request, og3::NetResponse* response,
+                               JsonVariant& jsonIn) {
   if (!jsonIn.is<JsonObject>()) {
-    request->reply(200, "application/json", "{\"isOk\":false,\"message\":\"Not an object\"}");
+    response->send(200, "application/json", "{\"isOk\":false,\"message\":\"Not an object\"}");
     NET_REPLY(request, ESP_FAIL);
   }
   const JsonObject jsonObj = jsonIn.as<JsonObject>();
@@ -285,14 +287,14 @@ og3::NetHandlerStatus pumpTest(og3::NetRequest* request, JsonVariant& jsonIn) {
   const int duration = jsonObj["duration"].as<int>();
   if (pump_id >= 1 && pump_id <= 4 && duration >= 0) {
     s_plants[pump_id - 1].relay().turnOn(duration);
-    request->reply(200, "application/json", "{\"isOk\":true}");
+    response->send(200, "application/json", "{\"isOk\":true}");
     NET_REPLY(request, ESP_OK);
   }
-  request->reply(200, "application/json", "{\"isOk\":false,\"message\":\"Bad values\"}");
+  response->send(200, "application/json", "{\"isOk\":false,\"message\":\"Bad values\"}");
   NET_REPLY(request, ESP_FAIL);
 }
 
-og3::NetHandlerStatus configJson(og3::NetRequest* request) {
+og3::NetHandlerStatus configJson(og3::NetRequest* request, og3::NetResponse* response) {
   s_body.clear();
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
@@ -301,11 +303,11 @@ og3::NetHandlerStatus configJson(og3::NetRequest* request) {
     plant.configVariables().toJson(json, og3::VariableBase::Flags::kConfig);
   }
   serializeJson(jsondoc, s_body);
-  request->reply(200, "application/json", s_body.c_str());
+  response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
 }
 
-og3::NetHandlerStatus apiGetWifi(og3::NetRequest* request) {
+og3::NetHandlerStatus apiGetWifi(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
   const auto& wifi = s_app.wifi_manager();
@@ -313,23 +315,24 @@ og3::NetHandlerStatus apiGetWifi(og3::NetRequest* request) {
   json["password"] = wifi.password();
   json["essid"] = wifi.essid();
   serializeJson(jsondoc, s_body);
-  request->reply(200, "application/json", s_body.c_str());
+  response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
 }
 
-og3::NetHandlerStatus putWifiConfig(og3::NetRequest* request, JsonVariant& jsonIn) {
+og3::NetHandlerStatus putWifiConfig(og3::NetRequest* request, og3::NetResponse* response,
+                                    JsonVariant& jsonIn) {
   if (!jsonIn.is<JsonObject>()) {
-    request->reply(500, "text/plain", "not a json object");
+    response->send(500, "text/plain", "not a json object");
     NET_REPLY(request, ESP_FAIL);
   }
   JsonObject obj = jsonIn.as<JsonObject>();
   s_app.wifi_manager().variables().updateFromJson(obj);
   s_app.config().write_config(s_app.wifi_manager().variables());
-  request->reply(200, "text/plain", "ok");
+  response->send(200, "text/plain", "ok");
   NET_REPLY(request, ESP_OK);
 }
 
-og3::NetHandlerStatus apiGetMqtt(og3::NetRequest* request) {
+og3::NetHandlerStatus apiGetMqtt(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
   const auto& mqtt = s_app.mqtt_manager();
@@ -338,13 +341,14 @@ og3::NetHandlerStatus apiGetMqtt(og3::NetRequest* request) {
   json["password"] = mqtt.auth_password();
   json["user"] = mqtt.auth_user();
   serializeJson(jsondoc, s_body);
-  request->reply(200, "application/json", s_body.c_str());
+  response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
 }
 
-og3::NetHandlerStatus putMqttConfig(og3::NetRequest* request, JsonVariant& jsonIn) {
+og3::NetHandlerStatus putMqttConfig(og3::NetRequest* request, og3::NetResponse* response,
+                                    JsonVariant& jsonIn) {
   if (!jsonIn.is<JsonObject>()) {
-    request->reply(500, "text/plain", "not a json object");
+    response->send(500, "text/plain", "not a json object");
     NET_REPLY(request, ESP_FAIL);
   }
   JsonObject obj = jsonIn.as<JsonObject>();
@@ -355,7 +359,7 @@ og3::NetHandlerStatus putMqttConfig(og3::NetRequest* request, JsonVariant& jsonI
   } else if (!s_app.mqtt_manager().isEnabled() && s_app.mqtt_manager().isConnected()) {
     s_app.mqtt_manager().disconnect();
   }
-  request->reply(200, "text/plain", "ok");
+  response->send(200, "text/plain", "ok");
   NET_REPLY(request, ESP_OK);
 }
 
@@ -378,20 +382,22 @@ void setup() {
   for (int id = 1; id <= static_cast<int>(s_plants.size()); id++) {
     char path[80];
     snprintf(path, sizeof(path), "/api/plants/%d", id);
-    s_app.web_server_module().onJson(path, HTTP_PUT,
-                                     [id](og3::NetRequest* request, JsonVariant& json) {
-                                       return putApiPlant(id, request, json);
-                                     });
+    s_app.web_server_module().onJson(
+        path, HTTP_PUT,
+        [id](og3::NetRequest* request, og3::NetResponse* response, JsonVariant& json) {
+          return putApiPlant(id, request, response, json);
+        });
   }
 
   s_app.web_server_module().onJson("/api/wifi", HTTP_PUT, putWifiConfig);
   s_app.web_server_module().onJson("/api/mqtt", HTTP_PUT, putMqttConfig);
 
-  s_app.web_server_module().on("/api/restart", HTTP_POST, [](og3::NetRequest* request) {
-    request->reply(200, "text/plain", "restarting");
-    s_app.tasks().runIn(1000, []() { ESP.restart(); });
-    NET_REPLY(request, ESP_OK);
-  });
+  s_app.web_server_module().on("/api/restart", HTTP_POST,
+                               [](og3::NetRequest* request, og3::NetResponse* response) {
+                                 response->send(200, "text/plain", "restarting");
+                                 s_app.tasks().runIn(1000, []() { ESP.restart(); });
+                                 NET_REPLY(request, ESP_OK);
+                               });
 
   s_app.setup();
 }
