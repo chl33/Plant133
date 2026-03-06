@@ -371,7 +371,7 @@ void setup() {
   s_app.web_server_module().on("/test/status", statusJson);
   s_app.web_server_module().on("/test/config", configJson);
   s_app.web_server_module().on("/root", handleWebRoot);
-  initSvelteStaticFiles(&s_app.web_server_module());
+  initSvelteStaticFiles(&s_app.web_server_module().native_server());
   s_app.web_server_module().on("/api/plants", HTTP_GET, apiGetPlants);
   s_app.web_server_module().on("/api/wifi", HTTP_GET, apiGetWifi);
   s_app.web_server_module().on("/api/mqtt", HTTP_GET, apiGetMqtt);
