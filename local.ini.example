@@ -1,0 +1,24 @@
+[local]
+build_flags =
+;	'-D LOG_DEBUG'
+	'-D LOG_UDP'
+	'-D LOG_UDP_ADDRESS=${secrets.udpLogTarget}'
+
+wifi_upload_flags = 
+
+[spider]
+boardv13 = 1
+
+[env:wifi_spider]
+extends = spider, wifi_node32s
+upload_port = {IP-ADDRESS-HERE}
+build_flags =
+        ${wifi_node32s.build_flags}
+	'-D BOARD_V13=${spider.boardv13}'
+	
+[env:usb_spider]
+extends = spider, usb_node32s
+build_flags =
+        ${usb_node32s.build_flags}
+	'-D BOARD_V13=${spider.boardv13}'
+	

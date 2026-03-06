@@ -14,3 +14,4 @@ secrets*.yaml
 /compile_commands.json
 /.cache/
 /lib/watering/svelteesp32async.h
+/local.ini
