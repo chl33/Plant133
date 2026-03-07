@@ -43,8 +43,9 @@
       class="nav-button"
       class:active={currentPage === `plant${plant.id}`}
       on:click={() => navigate(`plant${plant.id}`)}>
-      <Droplet size={20} />
-      <span>{plant.name}</span>
+      <Droplet size={20} class={plant.enabled ? "text-green" : "text-gray"} />
+      <span class="flex-1">{plant.name}</span>
+      <div class="mini-status" class:enabled={plant.enabled}></div>
     </button>
   {/each}
 
@@ -62,8 +63,11 @@
     class="nav-button"
     class:active={currentPage === 'mqtt'}
     on:click={() => navigate('mqtt')}>
-    <Radio size={20} />
-    <span>MQTT Setup</span>
+    <Radio size={20} class={status.mqttConnected ? "text-blue" : "text-red"} />
+    <span class="flex-1">MQTT Setup</span>
+    <span class="status-text" class:online={status.mqttConnected}>
+      {status.mqttConnected ? 'Connected' : 'Offline'}
+    </span>
   </button>
 
   <div class="nav-section">Device</div>
@@ -127,6 +131,39 @@
   .nav-button.active {
     background: #059669;
   }
+
+  .flex-1 {
+    flex: 1;
+  }
+
+  .mini-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6b7280;
+  }
+
+  .mini-status.enabled {
+    background: #10b981;
+    box-shadow: 0 0 4px #10b981;
+  }
+
+  .status-text {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+    background: #991b1b;
+    color: white;
+  }
+
+  .status-text.online {
+    background: #065f46;
+  }
+
+  :global(.text-green) { color: #10b981; }
+  :global(.text-gray) { color: #6b7280; }
+  :global(.text-blue) { color: #3b82f6; }
+  :global(.text-red) { color: #ef4444; }
 
   .nav-section {
     margin-top: 1.5rem;
