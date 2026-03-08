@@ -1,6 +1,6 @@
 name: PlatformIO CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -13,18 +13,26 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.platformio/.cache
-          key: ${{ runner.os }}-pio
+            svelte/node_modules
+          key: ${{ runner.os }}-pio-svelte
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Setup secrets for build
         run: cp secrets.ini.example secrets.ini && cp secrets-usb.ini.example secrets-usb.ini
 
-      - name: Install svelteesp32
-        run: cd svelte && npm install -D svelteesp32 build
+      - name: Install Svelte dependencies
+        run: |
+          cd svelte
+          npm install
 
-      - name: Build PlatformIO Project
-        run: pio run
+      - name: Build Firmware
+        run: pio run -e usb_cactus
