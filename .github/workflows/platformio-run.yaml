@@ -27,7 +27,7 @@ jobs:
           node-version: '20'
 
       - name: Setup secrets for build
-        run: cp secrets.ini.example secrets.ini && cp secrets-usb.ini.example secrets-usb.ini
+        run: cp secrets.ini.example secrets.ini && cp local.ini.example local.ini
 
       - name: Install Svelte dependencies
         run: |
