@@ -35,4 +35,4 @@ jobs:
           npm install
 
       - name: Build Firmware
-        run: pio run -e usb_cactus
+        run: pio run -e usb_spider
