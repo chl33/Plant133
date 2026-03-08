@@ -11,7 +11,7 @@ A writeup about this project is at "[Plant1337: "Water 4 plants](https://selecti
 *   **Multi-Plant Support**: Monitors and independently waters up to 4 plants.
 *   **Sensors**:
     *   Capacitive soil moisture sensing for each plant.
-    *   SHT3x temperature and humidity sensor for environmental monitoring.
+    *   SHTC3 temperature and humidity sensor for environmental monitoring.
     *   Reservoir water level float switch detection.
 *   **User Interface**:
     *   **OLED Screen**: Rotates through status screens showing IP address, moisture levels, and environment data.
@@ -39,30 +39,28 @@ Please see the [instructions](instructions.md) for how to assemble and set up a 
 2.  **Onetime setup for building the web interface**:
     ```bash
 	cd svelte
-	npm install vite --save-dev
-	npm install -D svelteesp32
+	npm install
 	```
 3.  **Build the Web interface and Firmware**:
     ```bash
-    pio run
+    # For a specific board (e.g. usb_cactus)
+    pio run -e usb_cactus
     ```
-4.  **Upload Filesystem** (style file for legacy web interface):
+4.  **Upload Firmware**:
     ```bash
-    pio run -t uploadfs
-    ```
-5.  **Upload Firmware**:
-    ```bash
-    pio run -t upload
+    pio run -e usb_cactus -t upload
     ```
 
 ## API Reference
 
 The device exposes a JSON API for integration and control:
 
-*   `GET /api/status`: Returns system status (temp, humidity, water level).
+*   `GET /api/status`: Returns system status (temp, humidity, water level, MQTT connection).
 *   `GET /api/plants`: Returns configuration for all plants.
-*   `GET /api/moisture`: Returns current moisture readings.
+*   `GET /api/moisture`: Returns current moisture readings and watering states.
 *   `PUT /api/plants/{id}`: Update configuration for a specific plant.
+*   `GET /api/wifi`: Get current WiFi SSID and board name.
+*   `GET /api/mqtt`: Get MQTT configuration status.
 *   `POST /test/pump`: Run a pump for a specific duration (JSON body: `{ "pumpId": 1, "duration": 1000 }`).
 *   `POST /api/restart`: Restart the device.
 
