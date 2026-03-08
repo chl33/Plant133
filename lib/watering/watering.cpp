@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Chris Lee and contibuters.
+// Copyright (c) 2026 Chris Lee and contributors.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 #include "watering.h"
@@ -11,7 +11,6 @@
 
 #include <algorithm>
 
-#include "ArduinoJson/Variant/JsonVariant.hpp"
 #include "watering_constants.h"
 
 namespace og3 {
@@ -64,13 +63,12 @@ const char* Watering::s_state_names[] = {
 };
 
 // static
-int Watering::direction() const { return wateringDirection(m_state.value()); }
+int Watering::direction() const {
+  return wateringDirection(static_cast<Watering::State>(m_state.value()));
+}
 
 String Watering::StateVariable::string() const { return Watering::s_state_names[m_value]; }
 bool Watering::StateVariable::fromString(const String& value) {
-  if (fromString(value)) {
-    return true;
-  }
   for (int i = 0; i <= Watering::kStateTest; i++) {
     if (0 == strcmp(value.c_str(), s_state_names[i])) {
       m_value = static_cast<Watering::State>(i);
@@ -174,13 +172,16 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
     }
   });
   add_update_fn([this]() { loop(); });
-  m_app->web_server().on(
-      statusUrl(), [this](AsyncWebServerRequest* request) { this->handleStatusRequest(request); });
-  m_app->web_server().on(
-      configUrl(), [this](AsyncWebServerRequest* request) { this->handleConfigRequest(request); });
-  m_app->web_server().on(pumpTestUrl(), [this](AsyncWebServerRequest* request) {
+  m_app->web_server_module().on(statusUrl(), [this](NetRequest* request, NetResponse* response) {
+    return this->handleStatusRequest(request, response);
+  });
+  m_app->web_server_module().on(configUrl(), [this](NetRequest* request, NetResponse* response) {
+    return this->handleConfigRequest(request, response);
+  });
+  m_app->web_server_module().on(pumpTestUrl(), [this](NetRequest* request, NetResponse* response) {
     testPump();
-    request->redirect(statusUrl());
+    response->redirect(statusUrl());
+    NET_REPLY(request, ESP_OK);
   });
 }
 
@@ -408,27 +409,29 @@ void Watering::_fullTest() {
   m_mode_led.off();
 }
 
-void Watering::handleStatusRequest(AsyncWebServerRequest* request) {
+NetHandlerStatus Watering::handleStatusRequest(NetRequest* request, NetResponse* response) {
 #ifndef NATIVE
   m_html.clear();
   html::writeTableInto(&m_html, variables());
   add_html_button(&m_html, "Configure", configUrl());
   add_html_button(&m_html, "Test pump", pumpTestUrl());
   m_html += HTML_BUTTON("/", "Back");
-  sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
+  sendWrappedHTML(request, response, m_app->board_cname(), this->name(), m_html.c_str());
 #endif
+  NET_REPLY(request, ESP_OK);
 }
-void Watering::handleConfigRequest(AsyncWebServerRequest* request) {
+NetHandlerStatus Watering::handleConfigRequest(NetRequest* request, NetResponse* response) {
 #ifndef NATIVE
   ::og3::read(*request, m_cfg_vg);
   m_html.clear();
   html::writeFormTableInto(&m_html, m_cfg_vg);
   add_html_button(&m_html, "Back", statusUrl());
-  sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
+  sendWrappedHTML(request, response, m_app->board_cname(), this->name(), m_html.c_str());
   if (m_config) {
     m_config->write_config(m_cfg_vg);
   }
 #endif
+  NET_REPLY(request, ESP_OK);
 }
 
 void Watering::getApiPlants(JsonObject json) const {

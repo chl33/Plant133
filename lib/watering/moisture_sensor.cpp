@@ -1,10 +1,12 @@
-// Copyright (c) 2025 Chris Lee and contibuters.
+// Copyright (c) 2026 Chris Lee and contributors.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 #include "moisture_sensor.h"
 
 #include <og3/constants.h>
 #include <og3/units.h>
+
+#include <algorithm>
 
 #include "watering_constants.h"
 
@@ -53,7 +55,21 @@ MoistureSensor::MoistureSensor(const char* name, uint8_t pin, const char* raw_de
                                VariableBase::kSettable | VariableBase::kConfig, 3, cfg_vg) {}
 
 void MoistureSensor::read(long nowMsec) {
-  const float val = m_mapped_adc.read();  // TODO(chrishl): check is reasonable value
+  const float val = m_mapped_adc.read();
+  if (m_mapped_adc.readingIsFailed()) {
+    return;
+  }
+
+  // If the reading is outside the configured calibration range, stop updating the filter.
+  const int raw = static_cast<int>(m_mapped_adc.raw_counts());
+  const int i_min = m_mapped_adc.in_min();
+  const int i_max = m_mapped_adc.in_max();
+  const int r_min = std::min(i_min, i_max);
+  const int r_max = std::max(i_min, i_max);
+  if (raw < r_min || raw > r_max) {
+    return;
+  }
+
   // We noticed that the moisture sensor reading is dependent on temperature, so try to compensate
   //  here.
   const float delta_temp = m_reference_tempC - m_tempC;

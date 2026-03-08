@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Chris Lee and contibuters.
+// Copyright (c) 2026 Chris Lee and contributors.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 #include "reservoir_check.h"
@@ -42,8 +42,9 @@ ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
                             ha::device_class::sensor::kDuration);
       });
     }
-    m_app->web_server().on(
-        "/config", [this](AsyncWebServerRequest* request) { this->handleConfigRequest(request); });
+    m_app->web_server_module().on("/config", [this](NetRequest* request, NetResponse* response) {
+      return this->handleConfigRequest(request, response);
+    });
   });
 }
 
@@ -60,17 +61,18 @@ void ReservoirCheck::pumpRanForMsec(float msecs) {
   }
 }
 
-void ReservoirCheck::handleConfigRequest(AsyncWebServerRequest* request) {
+NetHandlerStatus ReservoirCheck::handleConfigRequest(NetRequest* request, NetResponse* response) {
 #ifndef NATIVE
   ::og3::read(*request, m_cfg_vg);
   m_html.clear();
   html::writeFormTableInto(&m_html, m_cfg_vg);
   add_html_button(&m_html, "Back", "/");
-  sendWrappedHTML(request, m_app->board_cname(), this->name(), m_html.c_str());
+  sendWrappedHTML(request, response, m_app->board_cname(), this->name(), m_html.c_str());
   if (m_config) {
     m_config->write_config(m_cfg_vg);
   }
 #endif
+  NET_REPLY(request, ESP_OK);
 }
 
 }  // namespace og3

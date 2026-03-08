@@ -1,5 +1,5 @@
 #! /bin/sh
 set -e
 cd "$(dirname "$0")"/..
-license-header-checker -r -i .git,.github,.pio \
+license-header-checker -r -i .git,.github,.pio -e '^// .*\n// .*' \
 	-a ./util/license_header.txt . h cpp scad

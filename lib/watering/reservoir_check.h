@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Chris Lee and contibuters.
+// Copyright (c) 2026 Chris Lee and contributors.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 #include <og3/config_interface.h>
@@ -34,7 +34,7 @@ class ReservoirCheck : public Module {
   void add_html_status_button(String* body) const { add_html_button(body, name(), "/config"); }
 
  private:
-  void handleConfigRequest(AsyncWebServerRequest* request);
+  NetHandlerStatus handleConfigRequest(NetRequest* request, NetResponse* response);
 
   HAApp* const m_app;
   HADependenciesArray<2> m_deps;

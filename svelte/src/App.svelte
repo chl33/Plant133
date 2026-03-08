@@ -40,6 +40,8 @@
     hardware: ''
   });
 
+  export let isOnline = writable(true);
+
   // Load plant configurations from server
   async function loadPlantConfigs() {
     try {
@@ -47,8 +49,10 @@
       if (!response.ok) throw new Error('Failed to load plant configurations');
       const data = await response.json();
       plants.set(data);
+      isOnline.set(true);
     } catch (err) {
       console.error('Error loading plant configs:', err);
+      isOnline.set(false);
       error = err.message;
       // Use default data if server unavailable
       plants.set([
@@ -66,6 +70,7 @@
       const response = await fetch(`${API_BASE}/moisture`);
       if (!response.ok) throw new Error('Failed to load moisture levels');
       const data = await response.json();
+      isOnline.set(true);
 
       plants.update(p => {
         return p.map(plant => {
@@ -81,6 +86,7 @@
       });
     } catch (err) {
       console.error('Error loading moisture levels:', err);
+      isOnline.set(false);
     }
   }
 
@@ -91,8 +97,10 @@
       if (!response.ok) throw new Error('Failed to load WiFi config');
       const data = await response.json();
       wifi.set(data);
+      isOnline.set(true);
     } catch (err) {
       console.error('Error loading WiFi config:', err);
+      isOnline.set(false);
     }
   }
 
@@ -103,8 +111,10 @@
       if (!response.ok) throw new Error('Failed to load MQTT config');
       const data = await response.json();
       mqtt.set(data);
+      isOnline.set(true);
     } catch (err) {
       console.error('Error loading MQTT config:', err);
+      isOnline.set(false);
     }
   }
 
@@ -115,8 +125,10 @@
       if (!response.ok) throw new Error('Failed to load system status');
       const data = await response.json();
       systemStatus.set(data);
+      isOnline.set(true);
     } catch (err) {
       console.error('Error loading system status:', err);
+      isOnline.set(false);
     }
   }
 
@@ -148,7 +160,7 @@
 </script>
 
 <div class="app-container">
-  <Navbar />
+  <Navbar {wifi} {isOnline} />
   {#if loading}
     <div class="loading-container">
       <div class="spinner"></div>

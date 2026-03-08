@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Chris Lee and contributors.
+// Licensed under the MIT license. See LICENSE file in the project root for details.
+
 #pragma once
 // Copyright (c) 2025 Chris Lee and contibuters.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
@@ -118,8 +121,8 @@ class Watering : public Module {
   const char* pumpTestUrl() const { return m_pump_test_url.c_str(); }
   const char* varname(const char* name, std::string* str);
 
-  void handleStatusRequest(AsyncWebServerRequest* request);
-  void handleConfigRequest(AsyncWebServerRequest* request);
+  NetHandlerStatus handleStatusRequest(NetRequest* request, NetResponse* response);
+  NetHandlerStatus handleConfigRequest(NetRequest* request, NetResponse* response);
 
   HAApp* const m_app;
   HADependenciesArray<3> m_dependencies;

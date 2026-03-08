@@ -1,10 +1,8 @@
-// Copyright (c) 2025 Chris Lee and contibuters.
+// Copyright (c) 2026 Chris Lee and contributors.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 #include <Arduino.h>
 #include <ArduinoOTA.h>
-#include <AsyncJson.h>
-#include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <og3/constants.h>
 #include <og3/ha_app.h>
@@ -18,13 +16,10 @@
 #include <algorithm>
 #include <array>
 
-#include "ArduinoJson/Deserialization/DeserializationError.hpp"
-#include "ArduinoJson/Deserialization/deserialize.hpp"
-#include "ArduinoJson/Document/JsonDocument.hpp"
 #include "svelteesp32async.h"
 #include "watering.h"
 
-#define SW_VERSION "0.9.6"
+#define SW_VERSION "0.9.7"
 
 namespace {
 
@@ -115,10 +110,7 @@ og3::WebButton s_button_restart = s_app.createRestartButton();
 static String s_body;
 
 // Web callback for main device web page.
-void handleWebRoot(AsyncWebServerRequest* request) {
-  // The send of the web page happens asynchronously after this function exits, so we need to make
-  // sure the storage for the page remains.  I don't know of a great way to handle the case where
-  // multiple clients are being served data at once.
+og3::NetHandlerStatus handleWebRoot(og3::NetRequest* request, og3::NetResponse* response) {
   s_body.clear();
   s_shtc3.read();
   og3::html::writeTableInto(&s_body, s_climate_vg);
@@ -148,45 +140,17 @@ void handleWebRoot(AsyncWebServerRequest* request) {
   // Add a button for rebooting the device.
   s_button_restart.add_button(&s_body);
   // Send the page back to the web client.
-  og3::sendWrappedHTML(request, s_app.board_cname(), kSoftware, s_body.c_str());
+  og3::sendWrappedHTML(request, response, s_app.board_cname(), kSoftware, s_body.c_str());
+  NET_REPLY(request, ESP_OK);
 }
 
-// This code draws a graphical display of the watering states of plants that are enabled.
-// A display like this is drawn for each enabled plant, but vertically: -|-->-|-
-// The location of the '>' shows where the moisture level is comparted to the target min and
-//  max value.  The arrow head '>' (drawn as 'v' in the real vertical display) shows that the
-//  plant is not currently being watered.
-// The arrow head points upward when the plant is being watered.
-constexpr int16_t kScreenWidth = 128;
-constexpr int16_t kScreenHeight = 32;
-constexpr int16_t kMargin = 3;
-
-constexpr int kYScreenTop = kMargin;
-constexpr int kYScreenBot = kScreenHeight - kMargin;
-
-class PercentToY {
- public:
-  PercentToY(float min, float max) : m_min(min), m_max(max) {
-    const float mid = (m_min + m_max) / 2.0f;
-    const float diff = m_max - m_min;
-    const float pmax = std::min(100.0f, mid + diff);
-    m_pmin = std::max(0.0f, mid - diff);
-    m_slope = (kYScreenTop - kYScreenBot) / (pmax - m_pmin);
-  }
-
-  int16_t y(float percent) const {
-    const int16_t out = static_cast<int16_t>((percent - m_pmin) * m_slope) + kYScreenBot;
-    return (out < kYScreenTop) ? kYScreenTop : (out > kYScreenBot) ? kYScreenBot : out;
-  }
-
- private:
-  const float m_min;
-  const float m_max;
-  float m_slope = 0.0f;
-  float m_pmin = 0.0f;
-};
-
 void draw_graphs() {
+  constexpr int16_t kScreenWidth = 128;
+  constexpr int16_t kScreenHeight = 32;
+  constexpr int16_t kMargin = 3;
+  constexpr int kYScreenTop = kMargin;
+  constexpr int kYScreenBot = kScreenHeight - kMargin;
+
   s_oled.clear();
   auto& scr = s_oled.screen();
   for (size_t i = 0; i < s_plants.size(); i++) {
@@ -195,11 +159,24 @@ void draw_graphs() {
       continue;
     }
 
-    PercentToY p2y(plant.minTarget(), plant.maxTarget());
+    struct PercentToY {
+      float m_slope, m_pmin;
+      PercentToY(float min, float max) {
+        const float mid = (min + max) / 2.0f;
+        const float diff = max - min;
+        const float pmax = std::min(100.0f, mid + diff);
+        m_pmin = std::max(0.0f, mid - diff);
+        m_slope = static_cast<float>(kYScreenTop - kYScreenBot) / (pmax - m_pmin);
+      }
+      int16_t y(float percent) const {
+        const int16_t out = static_cast<int16_t>((percent - m_pmin) * m_slope) + kYScreenBot;
+        return (out < kYScreenTop) ? kYScreenTop : (out > kYScreenBot) ? kYScreenBot : out;
+      }
+    } p2y(plant.minTarget(), plant.maxTarget());
+
     auto line = [&scr, &p2y](int16_t x, float percent, int16_t offset) {
       const int16_t y1 = p2y.y(percent);
       const int16_t y2 = y1 + offset;
-      // s_app.log().logf("x:%d y1:%d y2:%d", (int)x, (int)y1, (int)y2);
       scr.drawLine(x - 3, y2, x, y1);
       scr.drawLine(x, y1, x + 3, y2);
     };
@@ -213,26 +190,24 @@ void draw_graphs() {
   s_oled.screen().display();
 }
 
-// Return current system status as JSON for AJAX status calls.
-void statusJson(AsyncWebServerRequest* request) {
+og3::NetHandlerStatus statusJson(og3::NetRequest* request, og3::NetResponse* response) {
   s_body.clear();
   s_shtc3.read();
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
-
   s_climate_vg.toJson(json, 0);
   s_reservoir.variables().toJson(json, 0);
   for (const auto& plant : s_plants) {
     plant.variables().toJson(json, 0);
   }
   serializeJson(jsondoc, s_body);
-  request->send(200, "application/json", s_body);
+  response->send(200, "application/json", s_body.c_str());
+  NET_REPLY(request, ESP_OK);
 }
 
-void apiGetPlants(AsyncWebServerRequest* request) {
+og3::NetHandlerStatus apiGetPlants(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonArray array = jsondoc.to<JsonArray>();
-
   int id = 0;
   for (const auto& plant : s_plants) {
     JsonObject json = array.add<JsonObject>();
@@ -241,13 +216,13 @@ void apiGetPlants(AsyncWebServerRequest* request) {
     plant.getApiPlants(json);
   }
   serializeJson(jsondoc, s_body);
-  request->send(200, "application/json", s_body);
+  response->send(200, "application/json", s_body.c_str());
+  NET_REPLY(request, ESP_OK);
 }
 
-void apiGetMoisture(AsyncWebServerRequest* request) {
+og3::NetHandlerStatus apiGetMoisture(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonArray array = jsondoc.to<JsonArray>();
-
   int id = 0;
   for (const auto& plant : s_plants) {
     JsonObject json = array.add<JsonObject>();
@@ -259,10 +234,11 @@ void apiGetMoisture(AsyncWebServerRequest* request) {
     json["state"] = plant.stateName();
   }
   serializeJson(jsondoc, s_body);
-  request->send(200, "application/json", s_body);
+  response->send(200, "application/json", s_body.c_str());
+  NET_REPLY(request, ESP_OK);
 }
 
-void apiGetStatus(AsyncWebServerRequest* request) {
+og3::NetHandlerStatus apiGetStatus(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
   json["temperature"] = s_shtc3.temperature();
@@ -277,213 +253,154 @@ void apiGetStatus(AsyncWebServerRequest* request) {
   json["hardware"] = "1.2";
 #endif
   serializeJson(jsondoc, s_body);
-  request->send(200, "application/json", s_body);
+  response->send(200, "application/json", s_body.c_str());
+  NET_REPLY(request, ESP_OK);
 }
 
-// Return current system status as JSON for AJAX status calls.
-void putApiPlant(int id, AsyncWebServerRequest* request, JsonVariant& jsonIn) {
+og3::NetHandlerStatus putApiPlant(int id, og3::NetRequest* request, og3::NetResponse* response,
+                                  JsonVariant& jsonIn) {
   if (id < 1 || id > static_cast<int>(s_plants.size())) {
-    request->send(500, "text/plain", "bad plant id");
-    return;
+    response->send(500, "text/plain", "bad plant id");
+    NET_REPLY(request, ESP_FAIL);
   }
   if (!jsonIn.is<JsonObject>()) {
-    request->send(500, "text/plain", "not a json object");
-    return;
+    response->send(500, "text/plain", "not a json object");
+    NET_REPLY(request, ESP_FAIL);
   }
   JsonObject obj = jsonIn.as<JsonObject>();
   if (!s_plants[id - 1].putApiPlants(obj)) {
-    request->send(500, "text/plain", "failed to update plant");
-    return;
+    response->send(500, "text/plain", "failed to update plant");
+    NET_REPLY(request, ESP_FAIL);
   }
-  request->send(200, "text/plain", "ok");
+  response->send(200, "text/plain", "ok");
+  NET_REPLY(request, ESP_OK);
 }
 
-// Handle ajax POSTS with pump-test commands like: "{pumpId: 1, duration: 1000}"
-void pumpTest(AsyncWebServerRequest* request, JsonVariant jsonIn) {
-  JsonDocument jsondoc;
-  JsonObject json = jsondoc.to<JsonObject>();
-  auto failed = [&json](const char* text) {
-    json["message"] = text;
-    return false;
-  };
-
+og3::NetHandlerStatus pumpTest(og3::NetRequest* request, og3::NetResponse* response,
+                               JsonVariant& jsonIn) {
   if (!jsonIn.is<JsonObject>()) {
-    failed("Not an object");
-    serializeJson(jsondoc, s_body);
-    request->send(200, "application/json", s_body);
-    return;
+    response->send(200, "application/json", "{\"isOk\":false,\"message\":\"Not an object\"}");
+    NET_REPLY(request, ESP_FAIL);
   }
   const JsonObject jsonObj = jsonIn.as<JsonObject>();
-
-  auto run = [&jsonObj, &json]() -> bool {
-    auto get = [&jsonObj, &json](const char* id, int min, int max) -> int {
-      const JsonVariant val = jsonObj[id];
-      if (!val.is<int>()) {
-        json["message"] = (String("No ") + id);
-        return min - 1;
-      }
-      const int ival = val.as<int>();
-      if (ival < min || ival > max) {
-        json["message"] = (String("Bad value for ") + id);
-        return min - 1;
-      }
-      return ival;
-    };
-    const int pump_id = get("pumpId", 1, 4);
-    const int duration = get("duration", 0, 10000);
-    if (pump_id < 1 || duration < 0) {
-      return false;
-    }
-    auto& plant = s_plants[pump_id - 1];
-    plant.relay().turnOn(duration);
-    return true;
-  };
-
-  s_body.clear();
-  json["isOk"] = run();
-  serializeJson(json, s_body);
-  request->send(200, "application/json", s_body);
+  const int pump_id = jsonObj["pumpId"].as<int>();
+  const int duration = jsonObj["duration"].as<int>();
+  if (pump_id >= 1 && pump_id <= 4 && duration >= 0) {
+    s_plants[pump_id - 1].relay().turnOn(duration);
+    response->send(200, "application/json", "{\"isOk\":true}");
+    NET_REPLY(request, ESP_OK);
+  }
+  response->send(200, "application/json", "{\"isOk\":false,\"message\":\"Bad values\"}");
+  NET_REPLY(request, ESP_FAIL);
 }
 
-// Return current system status as JSON for AJAX status calls.
-void configJson(AsyncWebServerRequest* request) {
+og3::NetHandlerStatus configJson(og3::NetRequest* request, og3::NetResponse* response) {
   s_body.clear();
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
-
   s_reservoir.configVariables().toJson(json, og3::VariableBase::Flags::kConfig);
   for (const auto& plant : s_plants) {
     plant.configVariables().toJson(json, og3::VariableBase::Flags::kConfig);
   }
   serializeJson(jsondoc, s_body);
-  request->send(200, "application/json", s_body);
+  response->send(200, "application/json", s_body.c_str());
+  NET_REPLY(request, ESP_OK);
 }
 
-void apiGetWifi(AsyncWebServerRequest* request) {
+og3::NetHandlerStatus apiGetWifi(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
-
   const auto& wifi = s_app.wifi_manager();
-
   json["board"] = wifi.board();
   json["password"] = wifi.password();
   json["essid"] = wifi.essid();
   serializeJson(jsondoc, s_body);
-  request->send(200, "application/json", s_body);
+  response->send(200, "application/json", s_body.c_str());
+  NET_REPLY(request, ESP_OK);
 }
 
-// Return current system status as JSON for AJAX status calls.
-void putWifiConfig(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
+og3::NetHandlerStatus putWifiConfig(og3::NetRequest* request, og3::NetResponse* response,
+                                    JsonVariant& jsonIn) {
   if (!jsonIn.is<JsonObject>()) {
-    request->send(500, "text/plain", "not a json object");
-    return;
+    response->send(500, "text/plain", "not a json object");
+    NET_REPLY(request, ESP_FAIL);
   }
   JsonObject obj = jsonIn.as<JsonObject>();
-  if (s_app.wifi_manager().variables().updateFromJson(obj) == 0) {
-    request->send(500, "text/plain", "no values updated");
-  }
+  s_app.wifi_manager().variables().updateFromJson(obj);
   s_app.config().write_config(s_app.wifi_manager().variables());
-  request->send(200, "text/plain", "ok");
+  response->send(200, "text/plain", "ok");
+  NET_REPLY(request, ESP_OK);
 }
 
-void apiGetMqtt(AsyncWebServerRequest* request) {
+og3::NetHandlerStatus apiGetMqtt(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
-
   const auto& mqtt = s_app.mqtt_manager();
-
   json["enabled"] = mqtt.isEnabled();
   json["host"] = mqtt.host();
   json["password"] = mqtt.auth_password();
   json["user"] = mqtt.auth_user();
   serializeJson(jsondoc, s_body);
-  request->send(200, "application/json", s_body);
+  response->send(200, "application/json", s_body.c_str());
+  NET_REPLY(request, ESP_OK);
 }
 
-// Return current system status as JSON for AJAX status calls.
-void putMqttConfig(AsyncWebServerRequest* request, JsonVariant& jsonIn) {
+og3::NetHandlerStatus putMqttConfig(og3::NetRequest* request, og3::NetResponse* response,
+                                    JsonVariant& jsonIn) {
   if (!jsonIn.is<JsonObject>()) {
-    request->send(500, "text/plain", "not a json object");
-    return;
+    response->send(500, "text/plain", "not a json object");
+    NET_REPLY(request, ESP_FAIL);
   }
   JsonObject obj = jsonIn.as<JsonObject>();
-  if (s_app.mqtt_manager().variables().updateFromJson(obj) == 0) {
-    request->send(500, "text/plain", "no values updated");
-  }
+  s_app.mqtt_manager().variables().updateFromJson(obj);
   s_app.config().write_config(s_app.mqtt_manager().variables());
-
   if (s_app.mqtt_manager().isEnabled() && !s_app.mqtt_manager().isConnected()) {
     s_app.mqtt_manager().connect();
   } else if (!s_app.mqtt_manager().isEnabled() && s_app.mqtt_manager().isConnected()) {
     s_app.mqtt_manager().disconnect();
   }
-
-  request->send(200, "text/plain", "ok");
+  response->send(200, "text/plain", "ok");
+  NET_REPLY(request, ESP_OK);
 }
 
 }  // namespace
 
-// This function is called once when code is started.
 void setup() {
-  // Register the graphical watering state display as one of the views the OLED display
-  //  will rotate through.
   s_oled.addDisplayFn(draw_graphs);
-  // Setup URL handlers in the web server.
-  // Serve static files from the /config subdirectory in flash.
-  s_app.web_server().serveStatic("/config/", LittleFS, "/");
-  // Serve the root URL via the handleWebRoot() callback function.
-  s_app.web_server().on("/test/status", statusJson);
-  s_app.web_server().on("/test/config", configJson);
-  s_app.web_server().on("/root", handleWebRoot);
-  initSvelteStaticFiles(&s_app.web_server());
-  s_app.web_server().on("/api/plants", HTTP_GET, apiGetPlants);
-  s_app.web_server().on("/api/wifi", HTTP_GET, apiGetWifi);
-  s_app.web_server().on("/api/mqtt", HTTP_GET, apiGetMqtt);
-  s_app.web_server().on("/api/moisture", HTTP_GET, apiGetMoisture);
-  s_app.web_server().on("/api/status", HTTP_GET, apiGetStatus);
+  s_app.web_server_module().native_server().serveStatic("/config/", LittleFS, "/");
+  s_app.web_server_module().on("/test/status", statusJson);
+  s_app.web_server_module().on("/test/config", configJson);
+  s_app.web_server_module().on("/root", handleWebRoot);
 
-  {  // Add pump test json callback.
-    AsyncCallbackJsonWebHandler* pumpTestHandler = new AsyncCallbackJsonWebHandler("/test/pump");
-    pumpTestHandler->setMethod(HTTP_POST);
-    pumpTestHandler->onRequest(
-        [](AsyncWebServerRequest* request, JsonVariant json) { pumpTest(request, json); });
-    s_app.web_server().addHandler(pumpTestHandler);
-  }
+  initSvelteStaticFiles(&s_app.web_server_module().native_server());
+  s_app.web_server_module().on("/api/plants", HTTP_GET, apiGetPlants);
+  s_app.web_server_module().on("/api/wifi", HTTP_GET, apiGetWifi);
+  s_app.web_server_module().on("/api/mqtt", HTTP_GET, apiGetMqtt);
+  s_app.web_server_module().on("/api/moisture", HTTP_GET, apiGetMoisture);
+  s_app.web_server_module().on("/api/status", HTTP_GET, apiGetStatus);
+  s_app.web_server_module().onJson("/test/pump", HTTP_POST, pumpTest);
 
   for (int id = 1; id <= static_cast<int>(s_plants.size()); id++) {
     char path[80];
     snprintf(path, sizeof(path), "/api/plants/%d", id);
-    AsyncCallbackJsonWebHandler* api_handler = new AsyncCallbackJsonWebHandler(path);
-    api_handler->setMethod(HTTP_PUT);
-    api_handler->onRequest([id](AsyncWebServerRequest* request, JsonVariant& json) {
-      putApiPlant(id, request, json);
-    });
-    s_app.web_server().addHandler(api_handler);
+    s_app.web_server_module().onJson(
+        path, HTTP_PUT,
+        [id](og3::NetRequest* request, og3::NetResponse* response, JsonVariant& json) {
+          return putApiPlant(id, request, response, json);
+        });
   }
 
-  {  // Add WiFi callback
-    AsyncCallbackJsonWebHandler* handler = new AsyncCallbackJsonWebHandler("/api/wifi");
-    handler->setMethod(HTTP_PUT);
-    handler->onRequest(
-        [](AsyncWebServerRequest* request, JsonVariant json) { putWifiConfig(request, json); });
-    s_app.web_server().addHandler(handler);
-  }
-  {  // Add Mqtt callback
-    AsyncCallbackJsonWebHandler* handler = new AsyncCallbackJsonWebHandler("/api/mqtt");
-    handler->setMethod(HTTP_PUT);
-    handler->onRequest(
-        [](AsyncWebServerRequest* request, JsonVariant json) { putMqttConfig(request, json); });
-    s_app.web_server().addHandler(handler);
-  }
+  s_app.web_server_module().onJson("/api/wifi", HTTP_PUT, putWifiConfig);
+  s_app.web_server_module().onJson("/api/mqtt", HTTP_PUT, putMqttConfig);
 
-  s_app.web_server().on("/api/restart", HTTP_POST, [](AsyncWebServerRequest* request) {
-    request->send(200, "text/plain", "restarting");
-    s_app.tasks().runIn(1000, []() { ESP.restart(); });
-  });
+  s_app.web_server_module().on("/api/restart", HTTP_POST,
+                               [](og3::NetRequest* request, og3::NetResponse* response) {
+                                 response->send(200, "text/plain", "restarting");
+                                 s_app.tasks().runIn(1000, []() { ESP.restart(); });
+                                 NET_REPLY(request, ESP_OK);
+                               });
 
-  // Run the og3 application setup code.
   s_app.setup();
 }
 
-// This is called repeaedly when code is running.
 void loop() { s_app.loop(); }
