@@ -312,8 +312,9 @@ og3::NetHandlerStatus apiGetWifi(og3::NetRequest* request, og3::NetResponse* res
   JsonObject json = jsondoc.to<JsonObject>();
   const auto& wifi = s_app.wifi_manager();
   json["board"] = wifi.board();
-  json["password"] = wifi.password();
-  json["essid"] = wifi.essid();
+  json["wifiPassword"] = wifi.wifiPassword();
+  json["essId"] = wifi.essId();
+  json["ipAddr"] = wifi.ipAddr();
   serializeJson(jsondoc, s_body);
   response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
@@ -337,9 +338,9 @@ og3::NetHandlerStatus apiGetMqtt(og3::NetRequest* request, og3::NetResponse* res
   JsonObject json = jsondoc.to<JsonObject>();
   const auto& mqtt = s_app.mqtt_manager();
   json["enabled"] = mqtt.isEnabled();
-  json["host"] = mqtt.host();
-  json["password"] = mqtt.auth_password();
-  json["user"] = mqtt.auth_user();
+  json["hostAddr"] = mqtt.hostAddr();
+  json["authPassword"] = mqtt.authPassword();
+  json["authUser"] = mqtt.authUser();
   serializeJson(jsondoc, s_body);
   response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);

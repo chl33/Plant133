@@ -75,8 +75,8 @@
         type="text"
         class="form-input"
         placeholder="mqtt.example.com or 192.168.1.100"
-        bind:value={mqttConfig.host}
-        on:change={() => updateMqtt('host', mqttConfig.host)}
+        bind:value={mqttConfig.hostAddr}
+        on:change={() => updateMqtt('hostAddr', mqttConfig.hostAddr)}
       />
     </div>
 
@@ -96,8 +96,8 @@
         type="text"
         class="form-input"
         placeholder="Leave blank if not required"
-        bind:value={mqttConfig.user}
-        on:change={() => updateMqtt('user', mqttConfig.user)}
+        bind:value={mqttConfig.authUser}
+        on:change={() => updateMqtt('authUser', mqttConfig.authUser)}
       />
     </div>
 
@@ -107,8 +107,8 @@
         type="password"
         class="form-input"
         placeholder="Leave blank if not required"
-        bind:value={mqttConfig.password}
-        on:change={() => updateMqtt('password', mqttConfig.password)}
+        bind:value={mqttConfig.authPassword}
+        on:change={() => updateMqtt('authPassword', mqttConfig.authPassword)}
       />
     </div>
 

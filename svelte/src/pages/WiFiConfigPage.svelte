@@ -57,8 +57,8 @@
         type="text"
         class="form-input"
         placeholder="Enter WiFi network name"
-        bind:value={wifiConfig.essid}
-        on:change={() => updateWifi('essid', wifiConfig.essid)}
+        bind:value={wifiConfig.essId}
+        on:change={() => updateWifi('essId', wifiConfig.essId)}
       />
     </div>
 
@@ -68,8 +68,8 @@
         type="password"
         class="form-input"
         placeholder="Enter WiFi password"
-        bind:value={wifiConfig.password}
-        on:change={() => updateWifi('password', wifiConfig.password)}
+        bind:value={wifiConfig.wifiPassword}
+        on:change={() => updateWifi('wifiPassword', wifiConfig.wifiPassword)}
       />
     </div>
 
