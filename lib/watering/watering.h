@@ -60,9 +60,9 @@ class Watering : public Module {
         : EnumStrVariable<State>(name_, value, description, State::kStateTest, s_state_names, flags,
                                  vg) {}
 
-    String string() const override { return s_state_names[static_cast<int>(m_value)]; }
+    String string() const final { return s_state_names[static_cast<int>(m_value)]; }
 
-    bool fromString(const String& value) override {
+    bool fromString(const String& value) final {
       for (int i = 0; i <= kStateTest; i++) {
         if (0 == strcmp(value.c_str(), s_state_names[i])) {
           m_value = static_cast<State>(i);

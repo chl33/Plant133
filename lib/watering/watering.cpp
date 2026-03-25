@@ -234,6 +234,12 @@ void Watering::loop() {
       m_moisture.setSigma(kKernelWateringSec);
     }
 
+#if 0
+    if (m_shtc3.ok() && !m_shtc3.temperatureVar().failed()) {
+      // Add current temperature, adjust moisture reading.
+      m_moisture.setTempC(m_shtc3.temperature());
+    }
+#endif
     m_moisture.read(nowMsec);
     if (m_index == 0) {
       const float level = m_moisture.filteredValue();
