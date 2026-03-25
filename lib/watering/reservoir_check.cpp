@@ -18,7 +18,6 @@ const char ReservoirCheck::kName[] = "reservoir";
 ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
     : Module(kName, &app_->module_system()),
       m_app(app_),
-      m_deps({ConfigInterface::kName}),
       m_cfg_vg(kName),
       m_vg(kName),
       m_din("reservoir", &m_app->module_system(), pin, "reservoir has water", m_vg, true),
@@ -26,18 +25,17 @@ ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
                                "pump seconds after low water", kCfgSet, 0, m_cfg_vg),
       m_pump_seconds_remaining("pump_sec_left", kLowWaterSecsRemaining, units::kSeconds,
                                "reservoir seconds left", 0, 0, m_vg) {
-  setDependencies(&m_deps);
-  add_link_fn([this](og3::NameToModule& name_to_module) -> bool {
-    m_config = ConfigInterface::get(name_to_module);
-    return true;
-  });
+  require(ConfigInterface::kName, &m_config);
+  require(MqttManager::kName, &m_mqtt_manager);
+  require(HADiscovery::kName, &m_ha_discovery);
+  require(OledDisplayRing::kName, &m_oled);
   add_init_fn([this]() {
-    if (m_deps.mqtt_manager() && m_deps.ha_discovery()) {
-      m_deps.ha_discovery()->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
+    if (m_mqtt_manager && m_ha_discovery) {
+      m_ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
         return had->addBinarySensor(json, m_din.isHighVar(),
                                     ha::device_class::binary_sensor::kMoisture);
       });
-      m_deps.ha_discovery()->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
+      m_ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
         return had->addMeas(json, m_pump_seconds_remaining, ha::device_type::kSensor,
                             ha::device_class::sensor::kDuration);
       });

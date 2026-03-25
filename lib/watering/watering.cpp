@@ -67,17 +67,6 @@ int Watering::direction() const {
   return wateringDirection(static_cast<Watering::State>(m_state.value()));
 }
 
-String Watering::StateVariable::string() const { return Watering::s_state_names[m_value]; }
-bool Watering::StateVariable::fromString(const String& value) {
-  for (int i = 0; i <= Watering::kStateTest; i++) {
-    if (0 == strcmp(value.c_str(), s_state_names[i])) {
-      m_value = static_cast<Watering::State>(i);
-      return true;
-    }
-  }
-  return false;
-}
-
 const char* Watering::varname(const char* elname, std::string* str) {
   *str = std::string(name()) + "_" + elname;
   return str->c_str();
@@ -87,7 +76,6 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
                    uint8_t pump_ctl_pin, HAApp* app)
     : Module(name, &app->module_system()),
       m_app(app),
-      m_dependencies({ConfigInterface::kName, ReservoirCheck::kName}),
       m_index(index),
       m_cfg_vg(name),
       m_vg(name),
@@ -116,14 +104,15 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
       m_watering_enabled("watering_enabled", false, "watering enabled", kCfgSet, m_cfg_vg),
       m_reservoir_check_enabled("res_check_enabled", false, "reservior check enabled", kCfgSet,
                                 m_cfg_vg) {
-  setDependencies(&m_dependencies);
+  require(ConfigInterface::kName, &m_config);
+  require(ReservoirCheck::kName, &m_reservoir_check);
+  require(MqttManager::kName, &m_mqtt_manager);
+  require(HADiscovery::kName, &m_ha_discovery);
+  require(OledDisplayRing::kName, &m_oled);
+
   // 10 seconds after boot, start the plant state machine.
   m_next_update_msec = millis() + (10 + 15 * index) * kMsecInSec;
-  add_link_fn([this](og3::NameToModule& name_to_module) -> bool {
-    m_config = ConfigInterface::get(name_to_module);
-    m_reservoir_check = ReservoirCheck::get(name_to_module);
-    return true;
-  });
+
   add_init_fn([this]() {
     if (m_config) {
       m_config->read_config(m_cfg_vg);
@@ -142,33 +131,32 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
       return had->addEntry(json, entry);
     };
 
-    auto* ha_discovery = m_dependencies.ha_discovery();
-    if (m_dependencies.mqtt_manager() && ha_discovery) {
-      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+    if (m_mqtt_manager && m_ha_discovery) {
+      m_ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
         HADiscovery::Entry entry(m_state, ha::device_type::kSensor);
         return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+      m_ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
         HADiscovery::Entry entry(m_moisture.filter().valueVariable(), ha::device_type::kSensor,
                                  ha::device_class::sensor::kMoisture);
         return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+      m_ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
         HADiscovery::Entry entry(m_moisture.adc().mapped_value(), ha::device_type::kSensor,
                                  ha::device_class::sensor::kMoisture);
         return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+      m_ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
         HADiscovery::Entry entry(m_pump.isHighVar(), ha::device_type::kBinarySensor,
                                  ha::device_class::binary_sensor::kPower);
         return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+      m_ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
         HADiscovery::Entry entry(m_sec_since_dose, ha::device_type::kSensor,
                                  ha::device_class::sensor::kDuration);
         return addEntry(entry, had, json);
       });
-      m_dose_log.addHADiscovery(ha_discovery);
+      m_dose_log.addHADiscovery(m_ha_discovery);
     }
   });
   add_update_fn([this]() { loop(); });
@@ -246,12 +234,6 @@ void Watering::loop() {
       m_moisture.setSigma(kKernelWateringSec);
     }
 
-#if 0
-    if (m_shtc3.ok() && !m_shtc3.temperatureVar().failed()) {
-      // Add current temperature, adjust moisture reading.
-      m_moisture.setTempC(m_shtc3.temperature());
-    }
-#endif
     m_moisture.read(nowMsec);
     if (m_index == 0) {
       const float level = m_moisture.filteredValue();
@@ -371,7 +353,9 @@ void Watering::loop() {
       break;
   }
 
-  m_app->mqttSend(m_vg);
+  if (m_mqtt_manager) {
+    m_mqtt_manager->mqttSend(m_vg);
+  }
   if (m_reservoir_check) {
     m_reservoir_check->mqttUpdate();
   }

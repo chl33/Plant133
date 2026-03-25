@@ -2,14 +2,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 #pragma once
-// Copyright (c) 2025 Chris Lee and contibuters.
-// Licensed under the MIT license. See LICENSE file in the project root for details.
 
 #include <og3/blink_led.h>
 #include <og3/ha_app.h>
-#include <og3/ha_dependencies.h>
-#include <og3/logger.h>
+#include <og3/module.h>
 #include <og3/relay.h>
+#include <og3/variable.h>
 
 #include "dose_log.h"
 #include "moisture_sensor.h"
@@ -17,49 +15,65 @@
 
 namespace og3 {
 
-// Watering manages the state machine for watering a plant.
+class ConfigInterface;
+class MqttManager;
+class HADiscovery;
+
+/** @brief Watering manages the state machine for watering a plant. */
 class Watering : public Module {
  public:
-  // The set of possible states in the state machine.
+  /** @brief The set of possible states in the state machine. */
   enum State {
-    // Check moisture level, reservior level during watering cycle.
-    kStateEval,
+    /** @brief Check moisture level, reservior level during watering cycle. */
+    kStateEval = 0,
 
-    // Start the pump and run for a fixed amount of time.
+    /** @brief Start the pump and run for a fixed amount of time. */
     kStateDose,
 
-    // Turn pump off at end of dose.
+    /** @brief Turn pump off at end of dose. */
     kStateEndOfDose,
 
-    // After moisture level reaches maximum level, wait for it to reach minimum
-    //  moisture level and also wait for minimum time between watering cycles, then
-    //  go back to kStateEval.
+    /** @brief After moisture level reaches maximum level, wait for it to reach minimum
+     *  moisture level and also wait for minimum time between watering cycles, then
+     *  go back to kStateEval.
+     */
     kStateWaitForNextCycle,
 
-    // After too many does in a cycle, pause for 12 hours.
+    /** @brief After too many does in a cycle, pause for 12 hours. */
     kStateWateringPaused,
 
-    // State for when pump is disabled.
+    /** @brief State for when pump is disabled. */
     kStateDisabled,
 
-    // State for when testing a single pump cycle.
+    /** @brief State for when testing a single pump cycle. */
     kStatePumpTest,
 
-    // Test state.
+    /** @brief Test state. */
     kStateTest,
   };
 
+  /** @brief Variable type for tracking the current watering state. */
   class StateVariable : public EnumStrVariable<State> {
    public:
-    StateVariable(const char* name_, const State value, const char* description_, unsigned flags_,
-                  VariableGroup& group)
-        : EnumStrVariable<State>(name_, value, description_, kStateTest, s_state_names, flags_,
-                                 group) {}
-    String string() const override;
-    bool fromString(const String& value) override;
+    StateVariable(const char* name_, State value, const char* description, unsigned flags,
+                  VariableGroup& vg)
+        : EnumStrVariable<State>(name_, value, description, State::kStateTest, s_state_names, flags,
+                                 vg) {}
 
-    StateVariable& operator=(const State value) {
-      m_value = value;
+    String string() const override { return s_state_names[static_cast<int>(m_value)]; }
+
+    bool fromString(const String& value) override {
+      for (int i = 0; i <= kStateTest; i++) {
+        if (0 == strcmp(value.c_str(), s_state_names[i])) {
+          m_value = static_cast<State>(i);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    StateVariable& operator=(State val) {
+      m_value = static_cast<int>(val);
       setFailed(false);
       return *this;
     }
@@ -67,65 +81,94 @@ class Watering : public Module {
 
   static const char* s_state_names[];
 
+  /**
+   * @brief Constructs a Watering module.
+   * @param index The index of this plant (0-3).
+   * @param name Unique name identifying this plant.
+   * @param moisture_pin Hardware ADC pin for moisture sensing.
+   * @param mode_led Pin for the status LED.
+   * @param pump_ctl_pin Pin for the pump relay control.
+   * @param app Pointer to the main application.
+   */
   Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8_t mode_led,
            uint8_t pump_ctl_pin, HAApp* app);
 
-  const char* stateName() const { return s_state_names[m_state.value()]; }
+  /** @brief Main loop update function for the state machine. */
+  void loop();
 
-  // +1 during watering, -1 waiting for next cycle, 0 if disabled.
-  int direction() const;
-
-  bool isEnabled() const { return m_watering_enabled.value(); }
-  float moisturePercent() const { return m_moisture.filteredValue(); }
-  unsigned rawMoisture() const { return m_moisture.rawCounts(); }
-
-  float maxTarget() const { return m_max_moisture_target.value(); }
-  float minTarget() const { return m_min_moisture_target.value(); }
-
-  const String& plantName() const { return m_plant_name.value(); }
-
-  void setPumpEnable(bool enable);
-  void setReservoirCheckEnable(bool enable) { m_reservoir_check_enabled = enable; }
-  bool reservoirCheckEnabled() const { return m_reservoir_check_enabled.value(); }
-  void testPump() { setState(kStatePumpTest, 100, "test pump"); }
-  void test() { setState(kStateTest, 100, "full test"); }
+  /** @return The current state of the machine. */
   State state() const { return static_cast<State>(m_state.value()); }
+  /** @return The human-readable state name. */
+  const char* stateName() const { return s_state_names[static_cast<int>(m_state.value())]; }
+  /** @return The user-assigned name for this plant. */
+  const String& plantName() const { return m_plant_name.value(); }
+  /** @return Current filtered moisture percentage. */
+  float moisturePercent() const { return m_moisture.filteredValue(); }
+  /** @return Current raw ADC counts from the sensor. */
+  unsigned rawMoisture() const { return m_moisture.rawCounts(); }
+  /** @return Minimum moisture threshold. */
+  float minTarget() const { return m_min_moisture_target.value(); }
+  /** @return Maximum moisture threshold. */
+  float maxTarget() const { return m_max_moisture_target.value(); }
+  /** @return true if automatic watering is enabled. */
+  bool isEnabled() const { return m_watering_enabled.value(); }
+  /** @return true if the associated reservoir is detected as empty. */
+  bool isReservoirEmpty() const { return m_reservoir_check && !m_reservoir_check->haveWater(); }
+  /** @return true if reservoir checks are enabled for this plant. */
+  bool reservoirCheckEnabled() const { return m_reservoir_check_enabled.value(); }
+
+  /** @brief Manually enable or disable watering. */
+  void setPumpEnable(bool enable);
+  /** @brief Triggers a manual pump test dose. */
+  void testPump() { setState(kStatePumpTest, 100, "start pump test"); }
+  /** @brief Triggers a full hardware test. */
+  void test() { setState(kStateTest, 100, "full test"); }
+
+  const char* statusUrl() const { return m_status_url.c_str(); }
+  const char* configUrl() const { return m_config_url.c_str(); }
+  const char* pumpTestUrl() const { return m_pump_test_url.c_str(); }
+
   void add_html_status_button(String* body) const {
     add_html_button(body, plantName().c_str(), statusUrl());
   }
-  bool isReservoirEmpty() const { return !m_reservoir_check->haveWater(); }
 
-  const VariableGroup& variables() const { return m_vg; }
-  const VariableGroup& configVariables() const { return m_cfg_vg; }
-
-  Relay& relay() { return m_pump; }
-
-  const DoseLog& doseLog() const { return m_dose_log; }
-
-  void loop();
-
+  /** @brief Populates a JSON object with plant status for the API. */
   void getApiPlants(JsonObject json) const;
+  /** @brief Updates plant configuration from a JSON object. */
   bool putApiPlants(JsonObject json);
 
+  /** @return +1 during watering, -1 waiting for next cycle, 0 if disabled. */
+  int direction() const;
+
+  /** @return Reference to the status variable group. */
+  const VariableGroup& variables() const { return m_vg; }
+  /** @return Reference to the configuration variable group. */
+  const VariableGroup& configVariables() const { return m_cfg_vg; }
+  /** @return Reference to the pump relay. */
+  Relay& relay() { return m_pump; }
+  /** @return Reference to the dose log. */
+  const DoseLog& doseLog() const { return m_dose_log; }
+
  protected:
-  // This method performs the work of the state machine.
-  // Before the method exits, it updates the current state and then schedules
-  //  this to get called again after a given time interval.
-  // The first call to this is scheduled in the constructor.
+  /**
+   * @brief This method performs the work of the state machine.
+   *
+   * Before the method exits, it updates the current state and then schedules
+   * this to get called again after a given time interval.
+   * @param state The next state.
+   * @param msec Time delay before next evaluation.
+   * @param msg Descriptive message for logging the transition.
+   */
   void setState(State state, unsigned msec, const char* msg);
 
  private:
   void _fullTest();
-  const char* statusUrl() const { return m_status_url.c_str(); }
-  const char* configUrl() const { return m_config_url.c_str(); }
-  const char* pumpTestUrl() const { return m_pump_test_url.c_str(); }
-  const char* varname(const char* name, std::string* str);
-
   NetHandlerStatus handleStatusRequest(NetRequest* request, NetResponse* response);
   NetHandlerStatus handleConfigRequest(NetRequest* request, NetResponse* response);
 
-  HAApp* const m_app;
-  HADependenciesArray<3> m_dependencies;
+  const char* varname(const char* elname, std::string* str);
+
+  HAApp* m_app;
   const unsigned m_index;
   VariableGroup m_cfg_vg;
   VariableGroup m_vg;
@@ -134,29 +177,32 @@ class Watering : public Module {
   const String m_pump_test_url;
   String m_html;
 
-  std::string m_device_id;
   std::string m_moisture_varname;
-  std::string m_pump_varname;
-  std::string m_watering_varname;
-  std::string m_sec_dose_varname;
-
-  ReservoirCheck* m_reservoir_check = nullptr;
-  ConfigInterface* m_config = nullptr;
   MoistureSensor m_moisture;
+  std::string m_pump_varname;
   Relay m_pump;
   BlinkLed m_mode_led;
   DoseLog m_dose_log;
 
-  unsigned long m_next_update_msec = 0;
   Variable<String> m_plant_name;
   FloatVariable m_max_moisture_target;
   FloatVariable m_min_moisture_target;
   FloatVariable m_pump_dose_msec;
   FloatVariable m_between_doses_sec;
+  std::string m_watering_varname;
   StateVariable m_state;
+  std::string m_sec_dose_varname;
   FloatVariable m_sec_since_dose;
   BoolVariable m_watering_enabled;
   BoolVariable m_reservoir_check_enabled;
+
+  unsigned long m_next_update_msec = 0;
+
+  ConfigInterface* m_config = nullptr;
+  ReservoirCheck* m_reservoir_check = nullptr;
+  MqttManager* m_mqtt_manager = nullptr;
+  HADiscovery* m_ha_discovery = nullptr;
+  OledDisplayRing* m_oled = nullptr;
 };
 
 }  // namespace og3

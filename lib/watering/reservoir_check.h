@@ -1,10 +1,11 @@
 // Copyright (c) 2026 Chris Lee and contributors.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+#pragma once
+
 #include <og3/config_interface.h>
 #include <og3/din.h>
 #include <og3/ha_app.h>
-#include <og3/ha_dependencies.h>
 #include <og3/oled_display_ring.h>
 
 namespace og3 {
@@ -37,13 +38,14 @@ class ReservoirCheck : public Module {
   NetHandlerStatus handleConfigRequest(NetRequest* request, NetResponse* response);
 
   HAApp* const m_app;
-  HADependenciesArray<2> m_deps;
   VariableGroup m_cfg_vg;
   VariableGroup m_vg;
   DIn m_din;
   FloatVariable m_pump_seconds_after_low;
   FloatVariable m_pump_seconds_remaining;
   ConfigInterface* m_config = nullptr;
+  MqttManager* m_mqtt_manager = nullptr;
+  HADiscovery* m_ha_discovery = nullptr;
   OledDisplayRing* m_oled = nullptr;
   String m_html;
 };
