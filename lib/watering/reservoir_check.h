@@ -27,10 +27,6 @@ class ReservoirCheck : public Module {
   static const char kName[];
   static const char kConfigUrl[];
 
-  static ReservoirCheck* get(const NameToModule& n2m) {
-    return GetModule<ReservoirCheck>(n2m, kName);
-  }
-
   void mqttUpdate() { m_app->mqttSend(m_vg); }
   void add_html_status_button(String* body) const { add_html_button(body, name(), "/config"); }
 

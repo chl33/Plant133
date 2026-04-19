@@ -28,6 +28,7 @@
     port: 1883,
     authUser: '',
     authPassword: '',
+    enabled: true
   });
 
   export let systemStatus = writable({

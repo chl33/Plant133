@@ -19,7 +19,7 @@
 #include "svelteesp32async.h"
 #include "watering.h"
 
-#define SW_VERSION "0.9.7"
+#define SW_VERSION "0.9.8"
 
 namespace {
 
@@ -310,11 +310,8 @@ og3::NetHandlerStatus configJson(og3::NetRequest* request, og3::NetResponse* res
 og3::NetHandlerStatus apiGetWifi(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
-  const auto& wifi = s_app.wifi_manager();
-  json["board"] = wifi.board();
-  json["wifiPassword"] = wifi.wifiPassword();
-  json["essId"] = wifi.essId();
-  json["ipAddr"] = wifi.ipAddr();
+  s_app.wifi_manager().variables().toJson(json, og3::VariableBase::Flags::kConfig);
+  s_body.clear();
   serializeJson(jsondoc, s_body);
   response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
@@ -330,17 +327,15 @@ og3::NetHandlerStatus putWifiConfig(og3::NetRequest* request, og3::NetResponse* 
   s_app.wifi_manager().variables().updateFromJson(obj);
   s_app.config().write_config(s_app.wifi_manager().variables());
   response->send(200, "text/plain", "ok");
+  s_app.tasks().runIn(1000, []() { ESP.restart(); });
   NET_REPLY(request, ESP_OK);
 }
 
 og3::NetHandlerStatus apiGetMqtt(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
-  const auto& mqtt = s_app.mqtt_manager();
-  json["enabled"] = mqtt.isEnabled();
-  json["hostAddr"] = mqtt.hostAddr();
-  json["authPassword"] = mqtt.authPassword();
-  json["authUser"] = mqtt.authUser();
+  s_app.mqtt_manager().variables().toJson(json, og3::VariableBase::Flags::kConfig);
+  s_body.clear();
   serializeJson(jsondoc, s_body);
   response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
