@@ -24,6 +24,7 @@ pump_wire_offset = [pump_wire_offset_d*cos(pump_wire_angle),
 float_height = 67;
 float_diameter = 28.5;
 
+pump_rot = 10;
 rot_pump_sep = 40;
 pump_sep = 26;
 
@@ -155,7 +156,7 @@ module Insert() {
     translate(vitamin_offset) {
       translate(pump_to_float) Float();
       for (i = [0:num_pumps-1])
-	translate([-pump_offsets[i],0,0]) rotate([0, 0, i*180]) VerticalPump();
+	translate([-pump_offsets[i],0,0]) rotate([0, 0, i*180-pump_rot]) VerticalPump();
     }
   }
 
@@ -173,6 +174,8 @@ module Insert() {
   module leg() {
     cylinder(insert_dims[2], insert_leg_radius, insert_leg_radius);
   }
+
+  // This is the module of the insert.
   if (show_insert) {
     translate([insert_leg_radius, insert_leg_radius, 0]) leg();
     translate([insert_dims[0]-insert_leg_radius, insert_leg_radius, 0]) leg();
@@ -220,11 +223,19 @@ module Insert() {
 	      cube([slot_width, vitamin_offset[1]+wire_xy[1]+1, 60]);
 	    // tube hole
 	    if (0 == (i%2)) {
-	      translate(vitamin_offset + pump_cyl_sep - Z*1)
+	      translate(vitamin_offset - Z*1) rotate([0, 0, -pump_rot]) translate(pump_cyl_sep) {
 		cylinder(5 + insert_top_thickness, tube_width/2+tube_gap, tube_width/2+tube_gap);
+		rotate([0, 0, pump_rot])
+		  translate([(-tube_width*0.8)/2, 0, 0])
+		  cube([tube_width*0.8, 20, 5 + insert_top_thickness]);
+	      }
 	      if (i+1 < num_pumps) {
-		translate(vitamin_offset + pump_cyl_sep1 - Z*1)
+		translate(vitamin_offset - Z*1) rotate([0, 0, pump_rot]) translate(pump_cyl_sep1) {
 		  cylinder(5 + insert_top_thickness, tube_width/2+tube_gap, tube_width/2+tube_gap);
+		  rotate([0, 0, -pump_rot])
+		    translate([(-tube_width*0.8)/2, -20, 0])
+		    cube([tube_width*0.8, 20, 5 + insert_top_thickness]);
+		}
 	      }
 	    }
 	  }
