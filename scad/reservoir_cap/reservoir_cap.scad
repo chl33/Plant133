@@ -2,7 +2,6 @@
 res_width = 100;
 res_length = 300;
 //res_length = 350;
-//res_length = 200;
 wall_thickness = 1;
 cap_height = 10;
 gap = 0.5;
@@ -30,6 +29,7 @@ module cap() {
       }
     }
     union() {
+      // Carve-out the inside of the cover.
       inside_rad = res_width / 2;
       inside_len = res_length - 2 * gap;
       offset = [gap + wall_thickness, gap + wall_thickness, -epsilon];
@@ -42,8 +42,21 @@ module cap() {
       translate(offset + [inside_len-(inside_rad*2), inside_rad, 0]) {
 	cylinder(cap_height, inside_rad, inside_rad);
       }
+      // Slot on side for ebox hook and wires.
+      slot_y = 5;
+      translate([outside_len/2-epsilon, offset[1], cap_height-1]) {
+	cube([res_length/2 - res_width, slot_y, 10]);
+      }
+      // Slot for tubing
+      tubing_offset_x = outside_len/2-epsilon;
+      tubing_slot_y = 35;
+      tubing_width = 10;
+      translate([tubing_offset_x, offset[1], cap_height-1]) {
+	cube([tubing_width, tubing_slot_y, 10]);
+      }
     }
   }
+  // Add 'pins' to help hold cover in place.
   pin_x_offset = wall_thickness + 2*gap + pin_rad + res_wall_thickness;
   translate([pin_x_offset, outside_rad, 0]) {
     translate([0, 0, cap_height-pin_height]) {
@@ -86,5 +99,5 @@ module cap_side(left) {
 }
 
 //cap();
-cap_side(true);
+cap_side(false);
 
