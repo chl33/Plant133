@@ -22,9 +22,9 @@ module cap() {
 	cylinder(outside_height, outside_rad, outside_rad);
       }
       translate([outside_rad, 0, 0]) {
-	cube([outside_len - outside_rad*3, outside_rad * 2, outside_height]);
+	cube([outside_len - outside_rad*2, outside_rad * 2, outside_height]);
       }
-      translate([outside_len-(outside_rad*2), outside_rad, 0]) {
+      translate([outside_len-outside_rad, outside_rad, 0]) {
 	cylinder(outside_height, outside_rad, outside_rad);
       }
     }
@@ -37,15 +37,16 @@ module cap() {
 	cylinder(cap_height, inside_rad, inside_rad);
       }
       translate(offset+ [inside_rad, 0, 0]) {
-	cube([inside_len - inside_rad*3, inside_rad * 2, cap_height]);
+	cube([inside_len - inside_rad*2, inside_rad * 2, cap_height]);
       }
-      translate(offset + [inside_len-(inside_rad*2), inside_rad, 0]) {
+      translate(offset + [inside_len-inside_rad, inside_rad, 0]) {
 	cylinder(cap_height, inside_rad, inside_rad);
       }
       // Slot on side for ebox hook and wires.
-      slot_y = 5;
-      translate([outside_len/2-epsilon, offset[1], cap_height-1]) {
-	cube([res_length/2 - res_width, slot_y, 10]);
+      slot_y = 10;
+      slot_x = 60;
+      translate([outside_len/2-epsilon, -epsilon, -epsilon]) {
+	cube([slot_x, slot_y, outside_height+1]);
       }
       // Slot for tubing
       tubing_offset_x = outside_len/2-epsilon;
@@ -64,7 +65,7 @@ module cap() {
       sphere(pin_rad);
     }
   }
-  translate([outside_len - outside_rad - pin_x_offset, outside_rad, 0]) {
+  translate([outside_len - pin_x_offset, outside_rad, 0]) {
     translate([0, 0, cap_height-pin_height]) {
       cylinder(pin_height, pin_rad, pin_rad);
       sphere(pin_rad);
