@@ -91,6 +91,29 @@
     </div>
 
     <div class="form-group">
+      <label class="form-label">MQTT Mode</label>
+      <select
+        class="form-input"
+        bind:value={mqttConfig.mode}
+        on:change={() => updateMqtt('mode', mqttConfig.mode)}
+      >
+        <option value="home-assistant">Home Assistant</option>
+        <option value="adafruit.io.">Adafruit IO</option>
+      </select>
+    </div>
+
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          bind:checked={mqttConfig.ssl}
+          on:change={() => updateMqtt('ssl', mqttConfig.ssl)}
+        />
+        Enable SSL/TLS (Requires NTP)
+      </label>
+    </div>
+
+    <div class="form-group">
       <label class="form-label">Username (optional)</label>
       <input
         type="text"

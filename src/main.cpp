@@ -7,6 +7,7 @@
 #include <og3/constants.h>
 #include <og3/ha_app.h>
 #include <og3/html_table.h>
+#include <og3/ntp.h>
 #include <og3/oled_wifi_info.h>
 #include <og3/shtc3.h>
 #include <og3/units.h>
@@ -72,6 +73,9 @@ og3::OledWifiInfo wifi_infof(&s_app.tasks());
 // Have OLED screen rotate between different views over time.
 og3::OledDisplayRing s_oled(&s_app.module_system(), kModel, kOledSwitchMsec, og3::Oled::kSixteenPt,
                             og3::Oled::Orientation::kDefault);
+
+// NTP for time synchronization (needed for SSL/TLS)
+og3::Ntp s_ntp(&s_app.module_system(), og3::Ntp::Options());
 
 // Temperature/humidity sensing in the vicinity of the device.
 og3::VariableGroup s_climate_vg("plant133");
