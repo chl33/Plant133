@@ -113,6 +113,19 @@
       </label>
     </div>
 
+    {#if mqttConfig.ssl}
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            bind:checked={mqttConfig.sslVerify}
+            on:change={() => updateMqtt('sslVerify', mqttConfig.sslVerify)}
+          />
+          Verify SSL Certificate
+        </label>
+      </div>
+    {/if}
+
     <div class="form-group">
       <label class="form-label">Username (optional)</label>
       <input

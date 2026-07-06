@@ -30,7 +30,8 @@
     authPassword: '',
     enabled: true,
     mode: 'home-assistant',
-    ssl: false
+    ssl: false,
+    sslVerify: true
   });
 
   export let systemStatus = writable({

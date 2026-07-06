@@ -5,6 +5,7 @@
 
 #include <og3/ha_discovery.h>
 #include <og3/html_table.h>
+#include <og3/mqtt_manager.h>
 
 #include "watering_constants.h"
 
@@ -56,6 +57,11 @@ void ReservoirCheck::pumpRanForMsec(float msecs) {
   if (!floatIsFloating()) {
     const float remaining = m_pump_seconds_remaining.value() - 1.0e-3 * msecs;
     m_pump_seconds_remaining = remaining > 0.0f ? remaining : 0.0f;
+  }
+}
+void ReservoirCheck::mqttUpdate() {
+  if (m_mqtt_manager && m_mqtt_manager->mode() != MqttManager::Mode::kAdafruitIO) {
+    m_app->mqttSend(m_vg);
   }
 }
 

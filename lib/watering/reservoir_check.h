@@ -29,7 +29,7 @@ class ReservoirCheck : public Module {
   static const char kName[];
   static const char kConfigUrl[];
 
-  void mqttUpdate() { m_app->mqttSend(m_vg); }
+  void mqttUpdate();
   void add_html_status_button(String* body) const { add_html_button(body, name(), "/config"); }
 
  private:

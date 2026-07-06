@@ -5,6 +5,7 @@
 
 #include <og3/blink_led.h>
 #include <og3/html_table.h>
+#include <og3/mqtt_manager.h>
 #include <og3/tasks.h>
 #include <og3/units.h>
 #include <og3/web_server.h>
@@ -356,7 +357,9 @@ void Watering::loop() {
   }
 
   if (m_mqtt_manager) {
-    m_mqtt_manager->mqttSend(m_vg);
+    if (m_mqtt_manager->mode() != MqttManager::Mode::kAdafruitIO || isEnabled()) {
+      m_mqtt_manager->mqttSend(m_vg);
+    }
   }
   if (m_reservoir_check) {
     m_reservoir_check->mqttUpdate();
