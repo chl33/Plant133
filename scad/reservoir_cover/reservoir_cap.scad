@@ -1,7 +1,6 @@
 
 res_width = 100;
-res_length = 300;
-//res_length = 350;
+res_length = 308;
 wall_thickness = 1;
 cap_height = 10;
 gap = 0.5;
@@ -99,6 +98,9 @@ module cap_side(left) {
   }
 }
 
-//cap();
-cap_side(false);
+// Right side of cap has cut-outs for the EBox, wires, and tubes
+//cap_side(false);
+
+// Left side of cap, without cut-outs (can be on the right too).
+cap_side(true);
 

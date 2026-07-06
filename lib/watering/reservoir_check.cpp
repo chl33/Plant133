@@ -13,7 +13,7 @@ namespace {
 constexpr unsigned kCfgSet = VariableBase::Flags::kConfig | VariableBase::Flags::kSettable;
 
 }
-const char ReservoirCheck::kName[] = "reservoir";
+const char ReservoirCheck::kName[] = "reservoir_check";
 
 ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
     : Module(kName, &app_->module_system()),
@@ -62,10 +62,10 @@ void ReservoirCheck::pumpRanForMsec(float msecs) {
 NetHandlerStatus ReservoirCheck::handleConfigRequest(NetRequest* request, NetResponse* response) {
 #ifndef NATIVE
   ::og3::read(*request, m_cfg_vg);
-  m_html.clear();
-  html::writeFormTableInto(&m_html, m_cfg_vg);
-  add_html_button(&m_html, "Back", "/");
-  sendWrappedHTML(request, response, m_app->board_cname(), this->name(), m_html.c_str());
+  String html;
+  html::writeFormTableInto(&html, m_cfg_vg);
+  add_html_button(&html, "Back", "/");
+  sendWrappedHTML(request, response, m_app->board_cname(), this->name(), html.c_str());
   if (m_config) {
     m_config->write_config(m_cfg_vg);
   }

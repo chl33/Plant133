@@ -15,6 +15,8 @@ namespace og3 {
 class ReservoirCheck : public Module {
  public:
   ReservoirCheck(uint8_t pin, HAApp* app_);
+  ReservoirCheck(ReservoirCheck&) = delete;
+  ReservoirCheck& operator=(ReservoirCheck&) = delete;
 
   void read();
   bool floatIsFloating() const { return m_din.isHigh(); }
@@ -36,6 +38,7 @@ class ReservoirCheck : public Module {
   HAApp* const m_app;
   VariableGroup m_cfg_vg;
   VariableGroup m_vg;
+  String m_din_name;
   DIn m_din;
   FloatVariable m_pump_seconds_after_low;
   FloatVariable m_pump_seconds_remaining;

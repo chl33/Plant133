@@ -22,9 +22,10 @@ const char* DoseLog::varname(const char* elname, const VariableGroup& vg, std::s
   return str->c_str();
 }
 
-DoseLog::DoseLog(VariableGroup& vg, VariableGroup& cfg_vg, ModuleSystem* module_system,
-                 Watering* watering)
-    : m_max_doses_per_cycle("max_doses_per_cycle", kMaxDosesPerCycle, "", "maximum doses per cycle",
+DoseLog::DoseLog(const std::string& name, VariableGroup& vg, VariableGroup& cfg_vg,
+                 ModuleSystem* module_system, Watering* watering)
+    : Module(name, module_system),
+      m_max_doses_per_cycle("max_doses_per_cycle", kMaxDosesPerCycle, "", "maximum doses per cycle",
                             kCfgSet, cfg_vg),
       m_doses_this_cycle(varname("doses_this_cycle", vg, &m_str_doses_this_cycle), 0, "",
                          "doses this cycle", 0, vg),

@@ -166,7 +166,7 @@ class Watering : public Module {
   NetHandlerStatus handleStatusRequest(NetRequest* request, NetResponse* response);
   NetHandlerStatus handleConfigRequest(NetRequest* request, NetResponse* response);
 
-  const char* varname(const char* elname, std::string* str);
+  std::string varname(const char* elname);
 
   HAApp* m_app;
   const unsigned m_index;
@@ -177,9 +177,7 @@ class Watering : public Module {
   const String m_pump_test_url;
   String m_html;
 
-  std::string m_moisture_varname;
   MoistureSensor m_moisture;
-  std::string m_pump_varname;
   Relay m_pump;
   BlinkLed m_mode_led;
   DoseLog m_dose_log;
@@ -189,9 +187,7 @@ class Watering : public Module {
   FloatVariable m_min_moisture_target;
   FloatVariable m_pump_dose_msec;
   FloatVariable m_between_doses_sec;
-  std::string m_watering_varname;
   StateVariable m_state;
-  std::string m_sec_dose_varname;
   FloatVariable m_sec_since_dose;
   BoolVariable m_watering_enabled;
   BoolVariable m_reservoir_check_enabled;
