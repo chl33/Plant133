@@ -357,7 +357,25 @@ void Watering::loop() {
   }
 
   if (m_mqtt_manager) {
-    if (m_mqtt_manager->mode() != MqttManager::Mode::kAdafruitIO || isEnabled()) {
+    if (m_mqtt_manager->mode() == MqttManager::Mode::kAdafruitIO) {
+      if (isEnabled()) {
+        for (auto* val : m_vg.variables()) {
+          if (val->config()) {
+            continue;
+          }
+          // Suffix filters for Adafruit IO Mode to save feed limits
+          String name = val->name();
+          if (name.endsWith("_doses_this_cycle") || name.endsWith("_doses_today") ||
+              name.endsWith("_sec_since_pump") || name.endsWith("Raw") ||
+              (name.endsWith("_soil_moisture") && !name.endsWith("_soil_moisture_filtered"))) {
+            continue;
+          }
+          String val_topic = m_mqtt_manager->topic(val->name(), m_vg.id());
+          String val_str = val->string();
+          m_mqtt_manager->mqttSend(val_topic.c_str(), val_str.c_str());
+        }
+      }
+    } else {
       m_mqtt_manager->mqttSend(m_vg);
     }
   }
