@@ -29,20 +29,34 @@ const char kModel[] = "Plantl337";
 const char kSoftware[] = "PlantL33 " SW_VERSION;
 
 // -- Hardware configuration,
+#if defined(BOARD_V20) || defined(BOARD_V2)
 constexpr uint8_t kWaterPin = 10;
 constexpr uint8_t kModeLED = 17;
-
-// Soil moisure sensor ADC pin assignments for ESP32-S3 (ADC1: GPIO 1, 2, 3, 4)
+// Soil moisture sensor ADC pin assignments for ESP32-S3 (ADC1: GPIO 1, 2, 3, 4)
 // - gpio1: adc1_ch0 -> mois1
 // - gpio2: adc1_ch1 -> mois2
 // - gpio3: adc1_ch2 -> mois3
 // - gpio4: adc1_ch3 -> mois4
 constexpr uint8_t kMoistureAnalogPin[4] = {1, 2, 3, 4};
-#if BOARD_V13
 // The pins on the ESP32-S3 board (Pump 4 moved to GPIO15 to free GPIO19/20 for Native USB).
 constexpr uint8_t kPumpCtlPin[4] = {5, 6, 7, 15};
+#elif BOARD_V13
+constexpr uint8_t kWaterPin = 23;
+constexpr uint8_t kModeLED = 17;
+// Soil moisture sensor ADC pin assignments for classic ESP32 (ADC1: GPIO 32, 33, 34, 35)
+// - gpio32: adc1_ch4 -> mois1
+// - gpio33: adc1_ch5 -> mois2
+// - gpio34: adc1_ch6 -> mois3
+// - gpio35: adc1_ch7 -> mois4
+constexpr uint8_t kMoistureAnalogPin[4] = {32, 33, 34, 35};
+// The pins on the v1.3 board. Changed pump-2 pin to not be on when power is first applied.
+constexpr uint8_t kPumpCtlPin[4] = {18, 13, 16, 19};
 #else
-constexpr uint8_t kPumpCtlPin[4] = {5, 6, 7, 15};
+constexpr uint8_t kWaterPin = 23;
+constexpr uint8_t kModeLED = 17;
+// The pins on the v1.2 board.
+constexpr uint8_t kMoistureAnalogPin[4] = {32, 33, 34, 35};
+constexpr uint8_t kPumpCtlPin[4] = {18, 5, 16, 19};
 #endif
 constexpr unsigned kOledSwitchMsec = 5000;
 
@@ -259,7 +273,9 @@ og3::NetHandlerStatus apiGetStatus(og3::NetRequest* request, og3::NetResponse* r
   json["pumpTimeRemaining"] = s_reservoir.secondsRemaining();
   json["mqttConnected"] = s_app.mqtt_manager().isConnected();
   json["software"] = SW_VERSION;
-#if BOARD_V13
+#if defined(BOARD_V20) || defined(BOARD_V2)
+  json["hardware"] = "2.0";
+#elif BOARD_V13
   json["hardware"] = "1.3";
 #else
   json["hardware"] = "1.2";
