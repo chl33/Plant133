@@ -379,9 +379,6 @@ void Watering::loop() {
       m_mqtt_manager->mqttSend(m_vg);
     }
   }
-  if (m_reservoir_check) {
-    m_reservoir_check->mqttUpdate();
-  }
 }
 
 void Watering::setState(State state, unsigned msec, const char* msg) {

@@ -95,6 +95,15 @@ og3::WifiWatchdog s_watchdog(&s_app, std::chrono::seconds(5), std::chrono::secon
 //  the pumps have run since the float detected low water level.
 og3::ReservoirCheck s_reservoir(kWaterPin, &s_app);
 
+// Every 5 minutes, send the status of the reservoir via MQTT.
+og3::PeriodicTaskScheduler reservoir_check_scheduler(
+    10 * og3::kMsecInSec, 5 * og3::kMsecInMin,
+    []() {
+      s_reservoir.read();
+      s_reservoir.mqttUpdate();
+    },
+    &s_app.tasks());
+
 // s_plants are the 4 different plant watering sytems.
 // The code for the plant watering system is in lib/watering/.
 std::array<og3::Watering, 4> s_plants{{
