@@ -20,7 +20,7 @@
       "footprints": true,
       "graphics": true,
       "keepouts": true,
-      "lockedItems": true,
+      "lockedItems": false,
       "otherItems": true,
       "pads": true,
       "text": true,
@@ -49,7 +49,7 @@
       "conflict_shadows",
       "shapes"
     ],
-    "visible_layers": "00000000_00000000_0fffffff_ffffffe9",
+    "visible_layers": "00000000_00000000_0fffffff_fffffffd",
     "zone_display_mode": 0
   },
   "git": {
@@ -126,11 +126,11 @@
     "selection_filter": {
       "graphics": false,
       "images": false,
-      "labels": false,
+      "labels": true,
       "lockedItems": false,
       "otherItems": true,
       "pins": false,
-      "symbols": true,
+      "symbols": false,
       "text": false,
       "wires": false
     }
