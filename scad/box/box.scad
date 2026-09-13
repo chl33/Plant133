@@ -13,7 +13,7 @@ gap = 0.2;
 corner_radius = 2;
 mount_offset = pad_space;
 
-space_above_board = 2;
+space_above_board = 3;
 space_below_board = 5;
 inner_dims = (board_dims
 	      + Z*(space_above_board+space_below_board)
@@ -24,23 +24,23 @@ outer_dims = (inner_dims
 
 // OLED bump offset and dims
 oled_o = [21, 0];
-oled_d = [outer_dims[0] - oled_o[0], 22, 12];
+oled_d = [outer_dims[0] - oled_o[0], 22, 13];
 
 // bumps is a list of [offset-xy, outer_dims]
 humps = [[oled_o, oled_d]];
 
 // cutout for moisture & pump
-conns_o = [31.5, 22];
+conns_o = [32, 22];
 conns_d = [30.5, 21];
 // cutout for water-level sensor
 wlconn_o = [conns_o[0], conns_o[1]+conns_d[1]-epsilon];
 wlconn_d = [8.5, 7];
 // cutout for oled screen
-olsc_o = [oled_o[0] + 7.5, oled_o[1] + 9];
+olsc_o = [oled_o[0] + 7.5, oled_o[1] + 8];
 olsc_d = [28, 12];
 // cutout for reset button
-rst_o = [oled_o[0] - 8, 10];
-rst_d = [8, 5];
+rst_o = [oled_o[0] - 6, 11];
+rst_d = [4, 3];
 // top_cutouts is a list of [offset-xy,  dims-xu]
 top_cutouts = [[conns_o, conns_d], [wlconn_o, wlconn_d], [olsc_o, olsc_d], [rst_o, rst_d]];
 
