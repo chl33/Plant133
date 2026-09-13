@@ -3653,7 +3653,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "chl33_library:DO-216"
+		(property "Footprint" "Diode_SMD:D_SMA"
 			(at 141.605 133.35 0)
 			(effects
 				(font
@@ -3954,7 +3954,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "chl33_library:DO-216"
+		(property "Footprint" "Diode_SMD:D_SMA"
 			(at 140.335 43.18 0)
 			(effects
 				(font
@@ -4828,7 +4828,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "chl33_library:DO-216"
+		(property "Footprint" "Diode_SMD:D_SMA"
 			(at 102.235 133.35 0)
 			(effects
 				(font
@@ -4996,7 +4996,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "chl33_library:DO-216"
+		(property "Footprint" "Diode_SMD:D_SMA"
 			(at 139.065 86.36 0)
 			(effects
 				(font
