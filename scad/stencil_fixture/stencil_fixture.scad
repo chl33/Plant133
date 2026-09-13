@@ -4,15 +4,24 @@
 // This is a fixture for holding a PCB and stencil in alignment
 board_thickness = 1.6;
 pad_space = 2.54;
-board_dims = [23.4*pad_space-0.1, 16.6*pad_space, board_thickness];
+board_dims = [23.5*pad_space, 18.5*pad_space, board_thickness];  // 59.69 x 46.99
 outside_border = 2;
 base_thickness = 1;
 
+usb_offset = 7.62;
+usb_width = 13.97;
+usb_depth = 1.3;
+
+epsilon = 1e-4;
+
+show_board = true;
+
 outside_dims = board_dims + [2*outside_border, 2*outside_border, base_thickness];
 
-if (false) {
-  translate([board_dims[0]/2, board_dims[1]/2, board_dims[2]/2 + base_thickness]) color("white")
-    import(file="Plant1337.stl", convexity=3);
+if (show_board) {
+  translate([board_dims[0]/2, (board_dims[1]-1)/2, board_dims[2]/2 + base_thickness])
+	    color("white")
+    import(file="../../KiCAD/Plant1337.stl", convexity=3);
  }
 
 dscrew = 2.5;
@@ -31,6 +40,8 @@ translate([-outside_border, -outside_border, 0]) {
       cube([outside_dims[0] - 2 * inside_offset, outside_dims[1] - 2 * inside_offset,
 	    base_thickness+1]);
     }
+    translate([outside_border+usb_offset, outside_border-usb_depth, base_thickness])
+      cube([usb_width, usb_depth+epsilon, board_thickness+epsilon+1]);
   }
   translate([outside_border, outside_border, base_thickness-0.01]) {
     $fn = 20;
