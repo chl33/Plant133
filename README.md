@@ -78,7 +78,7 @@ This project is built using a custom C++ framework for ESP devices:
 
 The full [KiCAD](https://www.kicad.org/) project for the printed circuit board is in the [KiCAD](KiCAD/) subdirectory.
 
-![Plant1337 PCBA rendered by KiCAD](images/plant1337-board-kicad.png)
+![Plant1337 PCBA rendered by KiCAD](images/plant133-pcba-v22.png)
 
 ### 3D Printed Components
 
