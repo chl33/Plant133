@@ -5,11 +5,11 @@ include <ProjectBox/project_box.scad>
 
 board_thickness = 1.6;
 pad_space = 2.54;
-board_dims = [23.4*pad_space, 16.6*pad_space, board_thickness];
+board_dims = [23.5*pad_space, 18.5*pad_space, board_thickness];  // 59.69 x 46.99
 
 module Plant1337_to_oled_frame() {
   u = pad_space;
-  translate([u*23-0.5, 0.6, 13]) rotate([0, 0, 90]) children();
+  translate([u*23-1.2, 6.1, 13]) rotate([0, 0, 90]) children();
 }
 
 module oled() {
@@ -28,8 +28,8 @@ module Plant1337_board() {
   u = pad_space;
 
   // Board imported from KiCad (VRML) -> meshlab
-  translate([board_dims[0]/2, board_dims[1]/2, board_dims[2]/2]) color("white")
-    import(file="Plant1337.stl", convexity=3);
+  translate([board_dims[0]/2, board_dims[1]/2, board_dims[2]/2]) color("grey")
+    import(file="../../KiCAD/Plant1337.stl", convexity=3);
 
   Plant1337_to_oled_frame() oled();
 }

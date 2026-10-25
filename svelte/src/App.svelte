@@ -18,16 +18,20 @@
   export let plants = writable([]);
 
   export let wifi = writable({
-    essid: '',
-    password: '',
+    essId: '',
+    wifiPassword: '',
     board: 'plant133'
   });
 
   export let mqtt = writable({
-    broker: '',
+    hostAddr: '',
     port: 1883,
-    username: '',
-    password: '',
+    authUser: '',
+    authPassword: '',
+    enabled: true,
+    mode: 'home-assistant',
+    ssl: false,
+    sslVerify: true
   });
 
   export let systemStatus = writable({

@@ -75,8 +75,8 @@
         type="text"
         class="form-input"
         placeholder="mqtt.example.com or 192.168.1.100"
-        bind:value={mqttConfig.host}
-        on:change={() => updateMqtt('host', mqttConfig.host)}
+        bind:value={mqttConfig.hostAddr}
+        on:change={() => updateMqtt('hostAddr', mqttConfig.hostAddr)}
       />
     </div>
 
@@ -91,13 +91,49 @@
     </div>
 
     <div class="form-group">
+      <label class="form-label">MQTT Mode</label>
+      <select
+        class="form-input"
+        bind:value={mqttConfig.mode}
+        on:change={() => updateMqtt('mode', mqttConfig.mode)}
+      >
+        <option value="home-assistant">Home Assistant</option>
+        <option value="adafruit.io.">Adafruit IO</option>
+      </select>
+    </div>
+
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          bind:checked={mqttConfig.ssl}
+          on:change={() => updateMqtt('ssl', mqttConfig.ssl)}
+        />
+        Enable SSL/TLS (Requires NTP)
+      </label>
+    </div>
+
+    {#if mqttConfig.ssl}
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            bind:checked={mqttConfig.sslVerify}
+            on:change={() => updateMqtt('sslVerify', mqttConfig.sslVerify)}
+          />
+          Verify SSL Certificate
+        </label>
+      </div>
+    {/if}
+
+    <div class="form-group">
       <label class="form-label">Username (optional)</label>
       <input
         type="text"
         class="form-input"
         placeholder="Leave blank if not required"
-        bind:value={mqttConfig.user}
-        on:change={() => updateMqtt('user', mqttConfig.user)}
+        bind:value={mqttConfig.authUser}
+        on:change={() => updateMqtt('authUser', mqttConfig.authUser)}
       />
     </div>
 
@@ -107,8 +143,8 @@
         type="password"
         class="form-input"
         placeholder="Leave blank if not required"
-        bind:value={mqttConfig.password}
-        on:change={() => updateMqtt('password', mqttConfig.password)}
+        bind:value={mqttConfig.authPassword}
+        on:change={() => updateMqtt('authPassword', mqttConfig.authPassword)}
       />
     </div>
 

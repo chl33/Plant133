@@ -13,7 +13,7 @@ gap = 0.2;
 corner_radius = 2;
 mount_offset = pad_space;
 
-space_above_board = 2;
+space_above_board = 2.5;
 space_below_board = 5;
 inner_dims = (board_dims
 	      + Z*(space_above_board+space_below_board)
@@ -23,25 +23,28 @@ outer_dims = (inner_dims
 	      + [2, 2, 0] * corner_radius);
 
 // OLED bump offset and dims
-oled_o = [20, 0];
-oled_d = [outer_dims[0] - oled_o[0], 17, 12];
+oled_o = [21, 0];
+oled_d = [outer_dims[0] - oled_o[0], 22, 12.5];
 
 // bumps is a list of [offset-xy, outer_dims]
 humps = [[oled_o, oled_d]];
 
 // cutout for moisture & pump
-conns_o = [31.5, 17.1];
+conns_o = [32, 22];
 conns_d = [30.5, 21];
 // cutout for water-level sensor
 wlconn_o = [conns_o[0], conns_o[1]+conns_d[1]-epsilon];
 wlconn_d = [8.5, 7];
 // cutout for oled screen
-olsc_o = [oled_o[0] + 7.5, oled_o[1] + 3.5];
-olsc_d = [28, 12];
+olsc_o = [oled_o[0] + 7.5, oled_o[1] + 8.5];
+olsc_d = [28, 10];
+// cutout for reset button
+rst_o = [oled_o[0] - 6, 10.5];
+rst_d = [4, 3];
 // top_cutouts is a list of [offset-xy,  dims-xu]
-top_cutouts = [[conns_o, conns_d], [wlconn_o, wlconn_d], [olsc_o, olsc_d]];
+top_cutouts = [[conns_o, conns_d], [wlconn_o, wlconn_d], [olsc_o, olsc_d], [rst_o, rst_d]];
 
-usb_cutout = [[25, wall_thickness+space_below_board+board_thickness-1], [9.5, 3.5]];
+usb_cutout = [[12, wall_thickness+space_below_board+board_thickness-1.5], [11, 4]];
 ym_cutouts = [usb_cutout];
 
 module in_Plant1337_board_frame(board_height=false) {
@@ -51,7 +54,7 @@ module in_Plant1337_board_frame(board_height=false) {
 
 module Plant1337_box(top) {
   wall = wall_thickness;
-  shtc3_loc = [board_dims[0] - 10.5, board_dims[1]-5, 0];
+  shtc3_loc = [board_dims[0] - 10.5, board_dims[1]-4.5, 0];
 
   difference() {
     union() {
@@ -67,7 +70,7 @@ module Plant1337_box(top) {
       if (top) {
 	color("white") in_Plant1337_board_frame(board_height=true)
 	  shtc3_window(shtc3_loc, space_above_board+wall, wall, false, z_gap=-1);
-	translate([27, 30, outer_dims[2]-epsilon])
+	translate([27, 35, outer_dims[2]-epsilon])
 	  color("black") linear_extrude(0.5) {
 	  translate([0, 0, 0]) text("1", size=4);
 	  translate([14, 10, 0]) text("2", size=4);
@@ -77,7 +80,7 @@ module Plant1337_box(top) {
       } else {
 	// Stuff to add on bottom.
 	color("white") in_Plant1337_board_frame() {
-	  at_corners(board_dims+1.0*X, mount_offset, x_extra=-1.2, y_extra=-0.2)
+	  at_corners(board_dims+1.5*X, mount_offset, x_extra=-1.6, y_extra=0.0)
 	    screw_mount(space_below_board, wall, 2.5/2);
 	}
       }	

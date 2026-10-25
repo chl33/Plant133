@@ -15,3 +15,11 @@ secrets*.yaml
 /.cache/
 /lib/watering/svelteesp32async.h
 /local.ini
+/KiCAD/Gerber/
+/KiCAD/Plant1337-drc.rpt
+/KiCAD/Plant1337-erc.rpt
+/KiCAD/*.bak
+*.bgcode
+hardware_improvements.md
+/svelte/.vite/
+

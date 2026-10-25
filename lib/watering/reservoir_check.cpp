@@ -5,6 +5,7 @@
 
 #include <og3/ha_discovery.h>
 #include <og3/html_table.h>
+#include <og3/mqtt_manager.h>
 
 #include "watering_constants.h"
 
@@ -13,12 +14,11 @@ namespace {
 constexpr unsigned kCfgSet = VariableBase::Flags::kConfig | VariableBase::Flags::kSettable;
 
 }
-const char ReservoirCheck::kName[] = "reservoir";
+const char ReservoirCheck::kName[] = "reservoir_check";
 
 ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
     : Module(kName, &app_->module_system()),
       m_app(app_),
-      m_deps({ConfigInterface::kName}),
       m_cfg_vg(kName),
       m_vg(kName),
       m_din("reservoir", &m_app->module_system(), pin, "reservoir has water", m_vg, true),
@@ -26,25 +26,26 @@ ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
                                "pump seconds after low water", kCfgSet, 0, m_cfg_vg),
       m_pump_seconds_remaining("pump_sec_left", kLowWaterSecsRemaining, units::kSeconds,
                                "reservoir seconds left", 0, 0, m_vg) {
-  setDependencies(&m_deps);
-  add_link_fn([this](og3::NameToModule& name_to_module) -> bool {
-    m_config = ConfigInterface::get(name_to_module);
-    return true;
-  });
+  require(ConfigInterface::kName, &m_config);
+  require(MqttManager::kName, &m_mqtt_manager);
+  require(HADiscovery::kName, &m_ha_discovery);
+  require(OledDisplayRing::kName, &m_oled);
   add_init_fn([this]() {
-    if (m_deps.mqtt_manager() && m_deps.ha_discovery()) {
-      m_deps.ha_discovery()->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
+    if (m_mqtt_manager && m_ha_discovery) {
+      m_ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
         return had->addBinarySensor(json, m_din.isHighVar(),
                                     ha::device_class::binary_sensor::kMoisture);
       });
-      m_deps.ha_discovery()->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
+      m_ha_discovery->addDiscoveryCallback([this](HADiscovery* had, JsonDocument* json) {
         return had->addMeas(json, m_pump_seconds_remaining, ha::device_type::kSensor,
                             ha::device_class::sensor::kDuration);
       });
     }
+#ifndef NATIVE
     m_app->web_server_module().on("/config", [this](NetRequest* request, NetResponse* response) {
       return this->handleConfigRequest(request, response);
     });
+#endif
   });
 }
 
@@ -60,14 +61,19 @@ void ReservoirCheck::pumpRanForMsec(float msecs) {
     m_pump_seconds_remaining = remaining > 0.0f ? remaining : 0.0f;
   }
 }
+void ReservoirCheck::mqttUpdate() {
+  if (m_mqtt_manager && m_mqtt_manager->mode() != MqttManager::Mode::kAdafruitIO) {
+    m_app->mqttSend(m_vg);
+  }
+}
 
 NetHandlerStatus ReservoirCheck::handleConfigRequest(NetRequest* request, NetResponse* response) {
 #ifndef NATIVE
   ::og3::read(*request, m_cfg_vg);
-  m_html.clear();
-  html::writeFormTableInto(&m_html, m_cfg_vg);
-  add_html_button(&m_html, "Back", "/");
-  sendWrappedHTML(request, response, m_app->board_cname(), this->name(), m_html.c_str());
+  String html;
+  html::writeFormTableInto(&html, m_cfg_vg);
+  add_html_button(&html, "Back", "/");
+  sendWrappedHTML(request, response, m_app->board_cname(), this->name(), html.c_str());
   if (m_config) {
     m_config->write_config(m_cfg_vg);
   }

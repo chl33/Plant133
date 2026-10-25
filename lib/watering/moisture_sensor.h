@@ -13,6 +13,11 @@ namespace og3 {
 //  the moisture sensor reads higher when temperature increases
 class MoistureSensor {
  public:
+  MoistureSensor(const MoistureSensor&) = delete;
+  MoistureSensor(MoistureSensor&&) = delete;
+  MoistureSensor& operator=(const MoistureSensor&) = delete;
+  MoistureSensor& operator=(MoistureSensor&&) = delete;
+
   MoistureSensor(const char* name, uint8_t pin, const char* raw_description,
                  const char* description, ModuleSystem* module_system, VariableGroup& cfg_vg,
                  VariableGroup& vg);

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <og3/constants.h>
+#include <og3/module.h>
 #include <og3/module_system.h>
 #include <og3/ring_buffer.h>
 #include <og3/util.h>
@@ -18,10 +19,10 @@ class Watering;
 // Track the total number of watering doses in a day.
 // This is done to avoid over-watering in case something goes wrong such as problems
 //  reading the moisture level of the soil.
-class DoseLog {
+class DoseLog : public Module {
  public:
-  DoseLog(VariableGroup& vg, VariableGroup& cfg_vg, ModuleSystem* module_system,
-          Watering* watering);
+  DoseLog(const std::string& name, VariableGroup& vg, VariableGroup& cfg_vg,
+          ModuleSystem* module_system, Watering* watering);
 
   // Return the total number of doses in the last 24 hours.
   unsigned doseCount() const { return m_dose_count.value(); }
@@ -60,7 +61,11 @@ class DoseLog {
 
   // Doses in watering cycles in the last 24 hours.
   struct Dose {
+#ifdef NATIVE
+    Dose() { this->secs = millis() / kMsecInSec; }
+#else
     Dose() { this->secs = esp_timer_get_time() / kUsecInSec; }
+#endif
     uint64_t secs = 0;
     int doses_this_cycle = 0;
     int dose_count = 0;

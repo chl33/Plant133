@@ -104,7 +104,7 @@
         <Wifi size={24} />
         <h3>WiFi Status</h3>
       </div>
-      <p>{wifiConfig.essid || 'Not configured'}</p>
+      <p>{wifiConfig.essId || 'Not configured'}</p>
       <button class="link-btn" on:click={() => navigate('wifi')}>
         Configure WiFi →
       </button>
@@ -115,7 +115,7 @@
         <Radio size={24} />
         <h3>MQTT Status</h3>
       </div>
-      <p>{mqttConfig.host || 'Not configured'}</p>
+      <p>{mqttConfig.hostAddr || 'Not configured'}</p>
       <button class="link-btn" on:click={() => navigate('mqtt')}>
         Configure MQTT →
       </button>

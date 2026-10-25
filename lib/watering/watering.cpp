@@ -5,6 +5,7 @@
 
 #include <og3/blink_led.h>
 #include <og3/html_table.h>
+#include <og3/mqtt_manager.h>
 #include <og3/tasks.h>
 #include <og3/units.h>
 #include <og3/web_server.h>
@@ -67,39 +68,24 @@ int Watering::direction() const {
   return wateringDirection(static_cast<Watering::State>(m_state.value()));
 }
 
-String Watering::StateVariable::string() const { return Watering::s_state_names[m_value]; }
-bool Watering::StateVariable::fromString(const String& value) {
-  for (int i = 0; i <= Watering::kStateTest; i++) {
-    if (0 == strcmp(value.c_str(), s_state_names[i])) {
-      m_value = static_cast<Watering::State>(i);
-      return true;
-    }
-  }
-  return false;
-}
-
-const char* Watering::varname(const char* elname, std::string* str) {
-  *str = std::string(name()) + "_" + elname;
-  return str->c_str();
-}
+std::string Watering::varname(const char* elname) { return std::string(name()) + "_" + elname; }
 
 Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8_t mode_led,
                    uint8_t pump_ctl_pin, HAApp* app)
     : Module(name, &app->module_system()),
       m_app(app),
-      m_dependencies({ConfigInterface::kName, ReservoirCheck::kName}),
       m_index(index),
       m_cfg_vg(name),
       m_vg(name),
       m_status_url(String("/") + name + "/status"),
       m_config_url(String("/") + name + "/config"),
       m_pump_test_url(String("/") + name + "/pump"),
-      m_moisture(varname("soil_moisture", &m_moisture_varname), moisture_pin,
-                 "raw moisture reading", "soil moisture %", &app->module_system(), m_cfg_vg, m_vg),
-      m_pump(varname("pump", &m_pump_varname), &app->tasks(), pump_ctl_pin, "pump state", true,
-             m_vg, Relay::OnLevel::kHigh),
-      m_mode_led("mode_led", mode_led, app, 100 /*msec-on*/, false /*onLow*/),
-      m_dose_log(m_vg, m_cfg_vg, &app->module_system(), this),
+      m_moisture(varname("soil_moisture").c_str(), moisture_pin, "raw moisture reading",
+                 "soil moisture %", &app->module_system(), m_cfg_vg, m_vg),
+      m_pump(varname("pump").c_str(), &app->tasks(), pump_ctl_pin, "pump state", true, m_vg,
+             Relay::OnLevel::kHigh),
+      m_mode_led(varname("mode_led").c_str(), mode_led, app, 100 /*msec-on*/, false /*onLow*/),
+      m_dose_log(varname("dose_log").c_str(), m_vg, m_cfg_vg, &app->module_system(), this),
       m_plant_name("name", name, nullptr, nullptr, kCfgSet, m_cfg_vg),
       m_max_moisture_target("max_moisture_target", 80.0f, units::kPercentage, "Max moisture",
                             kCfgSet, 0, m_cfg_vg),
@@ -109,21 +95,21 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
                        kCfgSet, 0, m_cfg_vg),
       m_between_doses_sec("between_doses_sec", kPumpOffSec, units::kSeconds, "Wait between doses",
                           kCfgSet, 0, m_cfg_vg),
-      m_state(varname("watering_state", &m_watering_varname), kStateWaitForNextCycle,
-              "watering state", 0, m_vg),
-      m_sec_since_dose(varname("sec_since_pump", &m_sec_dose_varname), 0, units::kSeconds,
+      m_state(varname("watering_state").c_str(), kStateWaitForNextCycle, "watering state", 0, m_vg),
+      m_sec_since_dose(varname("sec_since_pump").c_str(), 0, units::kSeconds,
                        "seconds since pump dose", 0, 0, m_vg),
       m_watering_enabled("watering_enabled", false, "watering enabled", kCfgSet, m_cfg_vg),
       m_reservoir_check_enabled("res_check_enabled", false, "reservior check enabled", kCfgSet,
                                 m_cfg_vg) {
-  setDependencies(&m_dependencies);
+  require(ConfigInterface::kName, &m_config);
+  require(ReservoirCheck::kName, &m_reservoir_check);
+  require(MqttManager::kName, &m_mqtt_manager);
+  require(HADiscovery::kName, &m_ha_discovery);
+  require(OledDisplayRing::kName, &m_oled);
+
   // 10 seconds after boot, start the plant state machine.
   m_next_update_msec = millis() + (10 + 15 * index) * kMsecInSec;
-  add_link_fn([this](og3::NameToModule& name_to_module) -> bool {
-    m_config = ConfigInterface::get(name_to_module);
-    m_reservoir_check = ReservoirCheck::get(name_to_module);
-    return true;
-  });
+
   add_init_fn([this]() {
     if (m_config) {
       m_config->read_config(m_cfg_vg);
@@ -142,36 +128,36 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
       return had->addEntry(json, entry);
     };
 
-    auto* ha_discovery = m_dependencies.ha_discovery();
-    if (m_dependencies.mqtt_manager() && ha_discovery) {
-      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+    if (m_mqtt_manager && m_ha_discovery) {
+      m_ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
         HADiscovery::Entry entry(m_state, ha::device_type::kSensor);
         return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+      m_ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
         HADiscovery::Entry entry(m_moisture.filter().valueVariable(), ha::device_type::kSensor,
                                  ha::device_class::sensor::kMoisture);
         return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+      m_ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
         HADiscovery::Entry entry(m_moisture.adc().mapped_value(), ha::device_type::kSensor,
                                  ha::device_class::sensor::kMoisture);
         return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+      m_ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
         HADiscovery::Entry entry(m_pump.isHighVar(), ha::device_type::kBinarySensor,
                                  ha::device_class::binary_sensor::kPower);
         return addEntry(entry, had, json);
       });
-      ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
+      m_ha_discovery->addDiscoveryCallback([this, addEntry](HADiscovery* had, JsonDocument* json) {
         HADiscovery::Entry entry(m_sec_since_dose, ha::device_type::kSensor,
                                  ha::device_class::sensor::kDuration);
         return addEntry(entry, had, json);
       });
-      m_dose_log.addHADiscovery(ha_discovery);
+      m_dose_log.addHADiscovery(m_ha_discovery);
     }
   });
   add_update_fn([this]() { loop(); });
+#ifndef NATIVE
   m_app->web_server_module().on(statusUrl(), [this](NetRequest* request, NetResponse* response) {
     return this->handleStatusRequest(request, response);
   });
@@ -183,6 +169,7 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
     response->redirect(statusUrl());
     NET_REPLY(request, ESP_OK);
   });
+#endif
 }
 
 void Watering::setPumpEnable(bool enable) {
@@ -281,7 +268,7 @@ void Watering::loop() {
       } else if (m_moisture.readingIsFailed()) {
         setState(kStateDisabled, 1, "failed reading moisture sensor");
       } else if (m_moisture.filteredValue() < kMinPlausibleMoisture) {
-        log()->logf("plant%d: Moisture sensor reading is too low (%.1f < %.1f).", m_index,
+        log()->logf("%s: Moisture sensor reading is too low (%.1f < %.1f).", name(),
                     m_moisture.filteredValue(), kMinPlausibleMoisture);
         setState(kStateDisabled, 1, "moisture level implausibly low");
       } else {
@@ -371,20 +358,39 @@ void Watering::loop() {
       break;
   }
 
-  m_app->mqttSend(m_vg);
-  if (m_reservoir_check) {
-    m_reservoir_check->mqttUpdate();
+  if (m_mqtt_manager) {
+    if (m_mqtt_manager->mode() == MqttManager::Mode::kAdafruitIO) {
+      if (isEnabled()) {
+        for (auto* val : m_vg.variables()) {
+          if (val->config()) {
+            continue;
+          }
+          // Suffix filters for Adafruit IO Mode to save feed limits
+          String name = val->name();
+          if (name.endsWith("_doses_this_cycle") || name.endsWith("_doses_today") ||
+              name.endsWith("_sec_since_pump") || name.endsWith("Raw") ||
+              (name.endsWith("_soil_moisture") && !name.endsWith("_soil_moisture_filtered"))) {
+            continue;
+          }
+          String val_topic = m_mqtt_manager->topic(val->name(), m_vg.id());
+          String val_str = val->string();
+          m_mqtt_manager->mqttSend(val_topic.c_str(), val_str.c_str());
+        }
+      }
+    } else {
+      m_mqtt_manager->mqttSend(m_vg);
+    }
   }
 }
 
 void Watering::setState(State state, unsigned msec, const char* msg) {
   if (m_state.value() != state) {
     // The watering state changed.
-    log()->logf("plant%u: %s -> %s in %d.%03d: %s.", m_index, s_state_names[m_state.value()],
+    log()->logf("%s: %s -> %s in %d.%03d: %s.", name(), s_state_names[m_state.value()],
                 s_state_names[state], msec / 1000, msec % 1000, msg);
   } else {
     // The watering state is staying the same.
-    log()->debugf("plant%u: %s -> %s in %d.%03d: %s.", m_index, s_state_names[m_state.value()],
+    log()->debugf("%s: %s -> %s in %d.%03d: %s.", name(), s_state_names[m_state.value()],
                   s_state_names[state], msec / 1000, msec % 1000, msg);
   }
   m_state = state;
@@ -396,13 +402,11 @@ void Watering::setState(State state, unsigned msec, const char* msg) {
 void Watering::_fullTest() {
   // test
   m_moisture.read(millis());
-  log()->logf("plant%u: moisture: %s: %d, %.1f", m_index,
-              m_moisture.readingIsFailed() ? "NOT OK" : "OK", m_moisture.rawCounts(),
-              m_moisture.filteredValue());
+  log()->logf("%s: moisture: %s: %d, %.1f", name(), m_moisture.readingIsFailed() ? "NOT OK" : "OK",
+              m_moisture.rawCounts(), m_moisture.filteredValue());
   if (m_reservoir_check) {
     m_reservoir_check->read();
-    log()->logf("plant%u: waterLevel %s", m_index,
-                m_reservoir_check->floatIsFloating() ? "OK" : "LOW");
+    log()->logf("%s: waterLevel %s", name(), m_reservoir_check->floatIsFloating() ? "OK" : "LOW");
   }
   m_mode_led.on();
   delay(100);
@@ -464,20 +468,22 @@ bool getVal(JsonObject json, const char* name, const std::function<void(const T&
 bool Watering::putApiPlants(JsonObject json) {
   const bool res =
       getVal<const char*>(json, "name", [this](const char* name) { m_plant_name = name; }) &&
-      getVal<int>(json, "minMoisture", [this](const int& val) { m_min_moisture_target = val; }) &&
-      getVal<int>(json, "maxMoisture", [this](const int& val) { m_max_moisture_target = val; }) &&
+      getVal<float>(json, "minMoisture",
+                    [this](const float& val) { m_min_moisture_target = val; }) &&
+      getVal<float>(json, "maxMoisture",
+                    [this](const float& val) { m_max_moisture_target = val; }) &&
       getVal<int>(json, "adc0", [this](const int& val) { m_moisture.adc().set_in_min(val); }) &&
       getVal<int>(json, "adc100", [this](const int& val) { m_moisture.adc().set_in_max(val); }) &&
-      getVal<int>(json, "pumpOnTime", [this](const int& val) { m_pump_dose_msec = val; }) &&
-      getVal<int>(json, "secsBetweenDoses",
-                  [this](const int& val) { m_between_doses_sec = val; }) &&
+      getVal<float>(json, "pumpOnTime", [this](const float& val) { m_pump_dose_msec = val; }) &&
+      getVal<float>(json, "secsBetweenDoses",
+                    [this](const float& val) { m_between_doses_sec = val; }) &&
       getVal<int>(json, "maxDosesPerCycle",
                   [this](const int& val) { m_dose_log.setMaxDoesPerCycle(val); }) &&
       getVal<bool>(json, "enabled", [this](const bool& val) { m_watering_enabled = val; });
   if (res && m_config) {
     m_config->write_config(m_cfg_vg);
   }
-  return true;
+  return res;
 }
 
 }  // namespace og3

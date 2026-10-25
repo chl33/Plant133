@@ -13,8 +13,8 @@ union() {
     }
   }
   if (show_vitamins) {
-    translate([wall_thickness+corner_radius,
-	       wall_thickness+corner_radius,
+    translate([wall_thickness+corner_radius+0.1,
+	       wall_thickness+corner_radius-0.35,
 	       wall_thickness+space_below_board-1])
       Plant1337_board();
   }

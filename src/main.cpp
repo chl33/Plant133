@@ -7,6 +7,7 @@
 #include <og3/constants.h>
 #include <og3/ha_app.h>
 #include <og3/html_table.h>
+#include <og3/ntp.h>
 #include <og3/oled_wifi_info.h>
 #include <og3/shtc3.h>
 #include <og3/units.h>
@@ -19,7 +20,7 @@
 #include "svelteesp32async.h"
 #include "watering.h"
 
-#define SW_VERSION "0.9.7"
+#define SW_VERSION "1.0.0"
 
 namespace {
 
@@ -28,20 +29,33 @@ const char kModel[] = "Plantl337";
 const char kSoftware[] = "PlantL33 " SW_VERSION;
 
 // -- Hardware configuration,
+#if defined(BOARD_V20) || defined(BOARD_V2)
+constexpr uint8_t kWaterPin = 10;
+constexpr uint8_t kModeLED = 17;
+// Soil moisture sensor ADC pin assignments for ESP32-S3 (ADC1: GPIO 1, 2, 3, 4)
+// - gpio1: adc1_ch0 -> mois1
+// - gpio2: adc1_ch1 -> mois2
+// - gpio3: adc1_ch2 -> mois3
+// - gpio4: adc1_ch3 -> mois4
+constexpr uint8_t kMoistureAnalogPin[4] = {1, 2, 3, 4};
+// The pins on the ESP32-S3 board (Pump 4 moved to GPIO15 to free GPIO19/20 for Native USB).
+constexpr uint8_t kPumpCtlPin[4] = {5, 6, 7, 15};
+#elif BOARD_V13
 constexpr uint8_t kWaterPin = 23;
 constexpr uint8_t kModeLED = 17;
-
-// Soil moisure sensor ADC pin assignments.
+// Soil moisture sensor ADC pin assignments for classic ESP32 (ADC1: GPIO 32, 33, 34, 35)
 // - gpio32: adc1_ch4 -> mois1
 // - gpio33: adc1_ch5 -> mois2
 // - gpio34: adc1_ch6 -> mois3
 // - gpio35: adc1_ch7 -> mois4
 constexpr uint8_t kMoistureAnalogPin[4] = {32, 33, 34, 35};
-#if BOARD_V13
 // The pins on the v1.3 board. Changed pump-2 pin to not be on when power is first applied.
 constexpr uint8_t kPumpCtlPin[4] = {18, 13, 16, 19};
 #else
+constexpr uint8_t kWaterPin = 23;
+constexpr uint8_t kModeLED = 17;
 // The pins on the v1.2 board.
+constexpr uint8_t kMoistureAnalogPin[4] = {32, 33, 34, 35};
 constexpr uint8_t kPumpCtlPin[4] = {18, 5, 16, 19};
 #endif
 constexpr unsigned kOledSwitchMsec = 5000;
@@ -73,6 +87,9 @@ og3::OledWifiInfo wifi_infof(&s_app.tasks());
 og3::OledDisplayRing s_oled(&s_app.module_system(), kModel, kOledSwitchMsec, og3::Oled::kSixteenPt,
                             og3::Oled::Orientation::kDefault);
 
+// NTP for time synchronization (needed for SSL/TLS)
+og3::Ntp s_ntp(&s_app.module_system(), og3::Ntp::Options());
+
 // Temperature/humidity sensing in the vicinity of the device.
 og3::VariableGroup s_climate_vg("plant133");
 og3::Shtc3 s_shtc3("temperature", "humidity", &s_app.module_system(), "temperature", s_climate_vg);
@@ -91,6 +108,15 @@ og3::WifiWatchdog s_watchdog(&s_app, std::chrono::seconds(5), std::chrono::secon
 // s_reservior monitors the water level of the reservoir: the float, and the number of seconds
 //  the pumps have run since the float detected low water level.
 og3::ReservoirCheck s_reservoir(kWaterPin, &s_app);
+
+// Every 5 minutes, send the status of the reservoir via MQTT.
+og3::PeriodicTaskScheduler reservoir_check_scheduler(
+    10 * og3::kMsecInSec, 5 * og3::kMsecInMin,
+    []() {
+      s_reservoir.read();
+      s_reservoir.mqttUpdate();
+    },
+    &s_app.tasks());
 
 // s_plants are the 4 different plant watering sytems.
 // The code for the plant watering system is in lib/watering/.
@@ -247,7 +273,9 @@ og3::NetHandlerStatus apiGetStatus(og3::NetRequest* request, og3::NetResponse* r
   json["pumpTimeRemaining"] = s_reservoir.secondsRemaining();
   json["mqttConnected"] = s_app.mqtt_manager().isConnected();
   json["software"] = SW_VERSION;
-#if BOARD_V13
+#if defined(BOARD_V20) || defined(BOARD_V2)
+  json["hardware"] = "2.0";
+#elif BOARD_V13
   json["hardware"] = "1.3";
 #else
   json["hardware"] = "1.2";
@@ -310,10 +338,8 @@ og3::NetHandlerStatus configJson(og3::NetRequest* request, og3::NetResponse* res
 og3::NetHandlerStatus apiGetWifi(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
-  const auto& wifi = s_app.wifi_manager();
-  json["board"] = wifi.board();
-  json["password"] = wifi.password();
-  json["essid"] = wifi.essid();
+  s_app.wifi_manager().variables().toJson(json, og3::VariableBase::Flags::kConfig);
+  s_body.clear();
   serializeJson(jsondoc, s_body);
   response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
@@ -329,17 +355,15 @@ og3::NetHandlerStatus putWifiConfig(og3::NetRequest* request, og3::NetResponse* 
   s_app.wifi_manager().variables().updateFromJson(obj);
   s_app.config().write_config(s_app.wifi_manager().variables());
   response->send(200, "text/plain", "ok");
+  s_app.tasks().runIn(1000, []() { ESP.restart(); });
   NET_REPLY(request, ESP_OK);
 }
 
 og3::NetHandlerStatus apiGetMqtt(og3::NetRequest* request, og3::NetResponse* response) {
   JsonDocument jsondoc;
   JsonObject json = jsondoc.to<JsonObject>();
-  const auto& mqtt = s_app.mqtt_manager();
-  json["enabled"] = mqtt.isEnabled();
-  json["host"] = mqtt.host();
-  json["password"] = mqtt.auth_password();
-  json["user"] = mqtt.auth_user();
+  s_app.mqtt_manager().variables().toJson(json, og3::VariableBase::Flags::kConfig);
+  s_body.clear();
   serializeJson(jsondoc, s_body);
   response->send(200, "application/json", s_body.c_str());
   NET_REPLY(request, ESP_OK);
