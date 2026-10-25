@@ -13,8 +13,7 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.platformio/.cache
-            svelte/node_modules
-          key: ${{ runner.os }}-pio-svelte
+          key: ${{ runner.os }}-pio
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -24,7 +23,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: svelte/package-lock.json
 
       - name: Setup secrets for build
         run: cp secrets.ini.example secrets.ini && cp local.ini.example local.ini
@@ -32,7 +33,7 @@ jobs:
       - name: Install Svelte dependencies
         run: |
           cd svelte
-          npm install
+          npm ci
 
       - name: Run Unit Tests
         run: pio test -e native
