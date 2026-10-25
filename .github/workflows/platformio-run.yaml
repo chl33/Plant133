@@ -34,5 +34,8 @@ jobs:
           cd svelte
           npm install
 
+      - name: Run Unit Tests
+        run: pio test -e native
+
       - name: Build Firmware
-        run: pio run -e usb_spider
+        run: pio run -e usb_spider -e usb_v20

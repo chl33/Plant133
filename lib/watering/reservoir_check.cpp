@@ -41,9 +41,11 @@ ReservoirCheck::ReservoirCheck(uint8_t pin, HAApp* app_)
                             ha::device_class::sensor::kDuration);
       });
     }
+#ifndef NATIVE
     m_app->web_server_module().on("/config", [this](NetRequest* request, NetResponse* response) {
       return this->handleConfigRequest(request, response);
     });
+#endif
   });
 }
 

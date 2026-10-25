@@ -61,7 +61,11 @@ class DoseLog : public Module {
 
   // Doses in watering cycles in the last 24 hours.
   struct Dose {
+#ifdef NATIVE
+    Dose() { this->secs = millis() / kMsecInSec; }
+#else
     Dose() { this->secs = esp_timer_get_time() / kUsecInSec; }
+#endif
     uint64_t secs = 0;
     int doses_this_cycle = 0;
     int dose_count = 0;

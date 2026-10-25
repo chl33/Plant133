@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Chris Lee and contributors.
+// Licensed under the MIT license. See LICENSE file in the project root for details.
+
 epsilon = 0.001;
 
 board_thickness = 1.6;

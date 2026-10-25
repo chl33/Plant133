@@ -10,9 +10,6 @@
 	    "maintainer": true
 	}
     ],
-    "dependencies": {
-	"og3": "0.2.0"
-    },
     "license": "MIT",
     "frameworks": "*",
     "platforms": "espressif8266, espressif32, native"

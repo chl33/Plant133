@@ -157,6 +157,7 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
     }
   });
   add_update_fn([this]() { loop(); });
+#ifndef NATIVE
   m_app->web_server_module().on(statusUrl(), [this](NetRequest* request, NetResponse* response) {
     return this->handleStatusRequest(request, response);
   });
@@ -168,6 +169,7 @@ Watering::Watering(unsigned index, const char* name, uint8_t moisture_pin, uint8
     response->redirect(statusUrl());
     NET_REPLY(request, ESP_OK);
   });
+#endif
 }
 
 void Watering::setPumpEnable(bool enable) {
@@ -466,20 +468,22 @@ bool getVal(JsonObject json, const char* name, const std::function<void(const T&
 bool Watering::putApiPlants(JsonObject json) {
   const bool res =
       getVal<const char*>(json, "name", [this](const char* name) { m_plant_name = name; }) &&
-      getVal<int>(json, "minMoisture", [this](const int& val) { m_min_moisture_target = val; }) &&
-      getVal<int>(json, "maxMoisture", [this](const int& val) { m_max_moisture_target = val; }) &&
+      getVal<float>(json, "minMoisture",
+                    [this](const float& val) { m_min_moisture_target = val; }) &&
+      getVal<float>(json, "maxMoisture",
+                    [this](const float& val) { m_max_moisture_target = val; }) &&
       getVal<int>(json, "adc0", [this](const int& val) { m_moisture.adc().set_in_min(val); }) &&
       getVal<int>(json, "adc100", [this](const int& val) { m_moisture.adc().set_in_max(val); }) &&
-      getVal<int>(json, "pumpOnTime", [this](const int& val) { m_pump_dose_msec = val; }) &&
-      getVal<int>(json, "secsBetweenDoses",
-                  [this](const int& val) { m_between_doses_sec = val; }) &&
+      getVal<float>(json, "pumpOnTime", [this](const float& val) { m_pump_dose_msec = val; }) &&
+      getVal<float>(json, "secsBetweenDoses",
+                    [this](const float& val) { m_between_doses_sec = val; }) &&
       getVal<int>(json, "maxDosesPerCycle",
                   [this](const int& val) { m_dose_log.setMaxDoesPerCycle(val); }) &&
       getVal<bool>(json, "enabled", [this](const bool& val) { m_watering_enabled = val; });
   if (res && m_config) {
     m_config->write_config(m_cfg_vg);
   }
-  return true;
+  return res;
 }
 
 }  // namespace og3

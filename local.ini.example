@@ -21,4 +21,11 @@ extends = spider, usb_node32s
 build_flags =
         ${usb_node32s.build_flags}
 	'-D BOARD_V13=${spider.boardv13}'
-	
+
+[env:usb_v20]
+extends = usb_s3
+
+[env:wifi_v20]
+extends = wifi_s3
+upload_port = {IP-ADDRESS-HERE}
+
