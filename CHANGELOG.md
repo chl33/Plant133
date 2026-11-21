@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-11-21
+
+### Changed
+- **Platform & Framework Upgrade**: Upgraded to `espressif32@^8.0.0` (Arduino-ESP32 3.x / ESP-IDF 5.x) and `chl33/og3@^0.7.1`.
+
+### Fixed
+- **ESP32-S3 Build Flag Warnings**: Unquoted `-D ARDUINO_USB_*` and `-D BOARD_*` flags in `[esp32s3]` to eliminate `ARDUINO_USB_CDC_ON_BOOT` redefinition warnings under `espressif32@^8.0.0`.
+
 ## [1.0.0] - 2026-10-25
 
 ### Added
