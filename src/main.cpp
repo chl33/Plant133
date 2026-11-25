@@ -20,7 +20,7 @@
 #include "svelteesp32async.h"
 #include "watering.h"
 
-#define SW_VERSION "1.0.1"
+#define SW_VERSION "1.0.2"
 
 namespace {
 
